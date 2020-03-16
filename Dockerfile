@@ -1,4 +1,4 @@
-FROM		pytorch/pytorch:0.4.1-cuda9-cudnn7-devel
+FROM		pytorch/pytorch:1.4-cuda10.1-cudnn7-devel
 MAINTAINER	sah0322@naver.com
 
 RUN     apt-get update -y && apt-get -y install parallel sox
