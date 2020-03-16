@@ -22,8 +22,7 @@ RIFF_wav_postfix = '.WAV'
 
 ##### Validation split #####
 # default using 5% of data as validation
-val_split 	= 0.05 
-
+val_split = 0.05
 
 data_type = 'float32'
 
