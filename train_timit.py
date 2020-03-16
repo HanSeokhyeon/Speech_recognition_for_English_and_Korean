@@ -1,6 +1,6 @@
 import yaml
-from util.timit_dataset import load_dataset,create_dataloader
-from model.las_model import Listener,Speller
+from util.timit_dataset import load_dataset, create_dataloader
+from model.las_model import Listener, Speller
 from util.functions import batch_iterator
 import numpy as np
 from torch.autograd import Variable
@@ -11,16 +11,10 @@ import argparse
 
 # Load config file for experiment
 parser = argparse.ArgumentParser(description='Training script for LAS on TIMIT .')
-
-parser.add_argument('config_path', metavar='config_path', type=str,
-                     help='Path to config file for training.')
-
+parser.add_argument('config_path', metavar='config_path', type=str, help='Path to config file for training.')
 paras = parser.parse_args()
-
 config_path = paras.config_path
-
 conf = yaml.load(open(config_path,'r'))
-
 
 # Parameters loading
 torch.manual_seed(conf['training_parameter']['seed'])
