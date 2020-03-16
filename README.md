@@ -129,7 +129,7 @@ Be aware of some differences between this implementation and the originally prop
 
         Training log will be stored at `log/` while model checkpoint at ` checkpoint/`
 
-        For a customized experiment, please read and modify [`config/las_example_config.yaml`](config/las_example_config.yaml). For more information and a simple demonstration, please refer to [`las_demo.ipynb`](las_demo.ipynb)
+        For a customized experiment, please read and modify [`config/las_example_config.yaml`](config/las_timit_config.yaml). For more information and a simple demonstration, please refer to [`las_demo.ipynb`](las_demo.ipynb)
     
 - LibriSpeech
 
