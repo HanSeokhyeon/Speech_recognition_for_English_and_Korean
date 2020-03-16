@@ -104,10 +104,9 @@ venv.bak/
 .mypy_cache/
 
 .idea/
-dataset/TIMIT
-dataset/train
 
 log
+checkpoint
 dataset
 
 .DS_Store
