@@ -12,7 +12,7 @@ def load_dataset(data_path, **kwargs):
 
 # Input x: list of np array with shape (timestep,feature)
 # Return new_x : a np array of shape (len(x), padded_timestep, feature)
-def zero_padding(x,pad_len):
+def zero_padding(x, pad_len):
     features = x[0].shape[-1]
     new_x = np.zeros((len(x), pad_len, features))
     for idx, ins in enumerate(x):
