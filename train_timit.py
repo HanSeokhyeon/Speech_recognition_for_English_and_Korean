@@ -28,10 +28,10 @@ tf_rate_lowerbound = conf['training_parameter']['tf_rate_lowerbound']
 # Load preprocessed TIMIT Dataset ( using testing set directly here, replace them with validation set your self)
 # X : Padding to shape [num of sample, max_timestep, feature_dim]
 # Y : Squeeze repeated label and apply one-hot encoding (preserve 0 for <sos> and 1 for <eos>)
-X_train, y_train, X_val, y_val, X_test, y_test = load_dataset(**conf['meta_variable'])
+X_train, y_train, X_valid, y_valid, X_test, y_test = load_dataset(**conf['meta_variable'])
 train_set = create_dataloader(X_train, y_train, **conf['model_parameter'], **conf['training_parameter'], shuffle=True)
-valid_set = create_dataloader(X_val, y_val, **conf['model_parameter'], **conf['training_parameter'], shuffle=False)
-#test_set = create_dataloader(X_test, y_test, **conf['model_parameter'], **conf['training_parameter'], shuffle=False)
+valid_set = create_dataloader(X_valid, y_valid, **conf['model_parameter'], **conf['training_parameter'], shuffle=False)
+test_set = create_dataloader(X_test, y_test, **conf['model_parameter'], **conf['training_parameter'], shuffle=False)
 
 # Construct LAS Model or load pretrained LAS model
 log_writer = SummaryWriter(conf['meta_variable']['training_log_dir']+conf['meta_variable']['experiment_name'])
@@ -107,11 +107,22 @@ while global_step < total_steps:
         for j in range(num_head):
             m = np.repeat(np.expand_dims(np.array(att_map[i][j]),0),3,axis=0)
             log_writer.add_image('attention_'+str(i)+'_head_'+str(j),
-                                 torch.FloatTensor(m[:,:,:]), global_step)
-
+                                 torch.FloatTensor(m), global_step)
 
     # Checkpoint
     if best_ler >= sum(dev_ler)/len(dev_ler):
         best_ler = sum(dev_ler)/len(dev_ler)
         torch.save(listener, listener_model_path)
         torch.save(speller, speller_model_path)
+
+# Test
+test_loss = []
+test_ler = []
+for _,(batch_data,batch_label) in enumerate(test_set):
+    batch_loss, batch_ler = batch_iterator(batch_data, batch_label, listener, speller, optimizer,
+                                           tf_rate, is_training=False, **conf['model_parameter'])
+    test_loss.append(batch_loss)
+    test_ler.extend(batch_ler)
+
+log_writer.add_scalars('loss',{'dev':np.array([sum(test_loss)/len(test_loss)])}, global_step)
+log_writer.add_scalars('cer',{'dev':np.array([np.array(test_ler).mean()])}, global_step)
