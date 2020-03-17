@@ -60,6 +60,7 @@ def create_mfcc(filename):
 
 	return out, out.shape[0]
 
+
 def calc_norm_param(X):
 	"""Assumes X to be a list of arrays (of differing sizes)"""
 	total_len = 0
@@ -94,8 +95,8 @@ def preprocess_dataset(file_list):
 	Y = []
 
 	for fname in file_list:
-		phn_fname = "{}{}".format(fname, phn_file_postfix)
-		wav_fname = "{}{}".format(fname, wav_file_postfix)
+		phn_fname = "{}/{}{}".format(paths, fname, phn_file_postfix)
+		wav_fname = "{}/{}{}".format(paths, fname, wav_file_postfix)
 
 		total_duration = get_total_duration(phn_fname)
 		fr = open(phn_fname)
@@ -144,7 +145,7 @@ X_test, y_test = preprocess_dataset(test_path)
 print('Preprocessing completed.')
 
 print()
-print('Collected {} training instances (should be 36xx in complete TIMIT )'.format(len(X_train)))
+print('Collected {} training instances (should be 3696 in complete TIMIT )'.format(len(X_train)))
 print('Collected {} validating instances (should be 400 in complete TIMIT )'.format(len(X_valid)))
 print('Collected {} testing instances (should be 192 in complete TIMIT )'.format(len(X_test)))
 
