@@ -8,6 +8,7 @@ import torch
 import sys
 from tensorboardX import SummaryWriter
 import argparse
+from logger import *
 
 # Load config file for experiment
 parser = argparse.ArgumentParser(description='Training script for LAS on TIMIT .')
@@ -77,8 +78,11 @@ while global_step < total_steps:
         dev_loss.append(batch_loss)
         dev_ler.extend(batch_ler)
 
-    log_writer.add_scalars('loss',{'dev':np.array([sum(dev_loss)/len(dev_loss)])}, global_step)
-    log_writer.add_scalars('cer',{'dev':np.array([np.array(dev_ler).mean()])}, global_step)
+    now_loss, now_cer = np.array([sum(dev_loss)/len(dev_loss)]), np.mean(dev_ler)
+    log_writer.add_scalars('loss',{'dev':now_loss}, global_step)
+    log_writer.add_scalars('cer',{'dev':now_cer}, global_step)
+
+    logger.info("global step: {:6d}, loss: {:.4f}, cer: {:.4f}".format(global_step, float(now_loss), float(now_cer)))
 
     # Generate Attention map
     if conf['model_parameter']['bucketing']:
@@ -124,5 +128,8 @@ for _,(batch_data,batch_label) in enumerate(test_set):
     test_loss.append(batch_loss)
     test_ler.extend(batch_ler)
 
-log_writer.add_scalars('loss',{'test':np.array([sum(test_loss)/len(test_loss)])}, global_step)
-log_writer.add_scalars('cer',{'test':np.array([np.array(test_ler).mean()])}, global_step)
+now_loss, now_cer = np.array([sum(test_loss)/len(test_loss)]), np.mean(test_ler)
+log_writer.add_scalars('loss',{'test':now_loss}, global_step)
+log_writer.add_scalars('cer',{'test':now_cer}, global_step)
+
+logger.info("global step: {:6d}, loss: {:.4f}, cer: {:.4f}".format(global_step, float(now_loss), float(now_cer)))
