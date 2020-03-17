@@ -16,6 +16,8 @@ parser.add_argument('config_path', metavar='config_path', type=str, help='Path t
 paras = parser.parse_args()
 config_path = paras.config_path
 conf = yaml.load(open(config_path,'r'))
+if not torch.cuda.is_available():
+    conf['model_parameter']['use_gpu'] = False
 
 # Parameters loading
 torch.manual_seed(conf['training_parameter']['seed'])
@@ -51,7 +53,7 @@ speller_model_path = conf['meta_variable']['checkpoint_dir']+conf['meta_variable
 # save checkpoint with the best ler
 best_ler = 1.0
 global_step = 0
-total_steps = total_epochs * len(X_train)
+total_steps = total_epochs * len(X_train) // conf['training_parameter']['batch_size']
 
 train_begin = time.time()
 
