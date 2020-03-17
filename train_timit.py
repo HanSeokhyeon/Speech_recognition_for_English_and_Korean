@@ -19,7 +19,7 @@ conf = yaml.load(open(config_path,'r'))
 
 # Parameters loading
 torch.manual_seed(conf['training_parameter']['seed'])
-total_steps = conf['training_parameter']['total_steps']
+total_epochs = conf['training_parameter']['total_epochs']
 use_pretrained = conf['training_parameter']['use_pretrained']
 verbose_step = conf['training_parameter']['verbose_step']
 valid_step  = conf['training_parameter']['valid_step']
@@ -51,24 +51,28 @@ speller_model_path = conf['meta_variable']['checkpoint_dir']+conf['meta_variable
 # save checkpoint with the best ler
 best_ler = 1.0
 global_step = 0
+total_steps = total_epochs * len(X_train)
 
-while global_step < total_steps:
+train_begin = time.time()
+
+for epoch in range(total_epochs):
 
     # Teacher forcing rate linearly decay
     tf_rate = tf_rate_upperbound - (tf_rate_upperbound-tf_rate_lowerbound)*(global_step/total_steps)
-    
+
+    epoch_begin = time.time()
+
     # Training
     for batch_index,(batch_data,batch_label) in enumerate(train_set):
         batch_loss, batch_ler = batch_iterator(batch_data, batch_label, listener, speller, optimizer, 
                                                tf_rate, is_training=True, **conf['model_parameter'])
+
         global_step += 1
 
         if global_step % verbose_step == 0:
             log_writer.add_scalars('loss',{'train':batch_loss}, global_step)
             log_writer.add_scalars('cer',{'train':np.array([np.array(batch_ler).mean()])}, global_step)
-        if global_step % valid_step == 0:
-            break
-    
+
     # Validation
     dev_loss = []
     dev_ler = []
@@ -82,8 +86,14 @@ while global_step < total_steps:
     log_writer.add_scalars('loss',{'dev':now_loss}, global_step)
     log_writer.add_scalars('cer',{'dev':now_cer}, global_step)
 
-    logger.info("global step: {:6d}, loss: {:.4f}, cer: {:.4f}".format(global_step, float(now_loss), float(now_cer)))
+    current = time.time()
+    epoch_elapsed = (current - epoch_begin) / 60.0
+    train_elapsed = (current - train_begin) / 3600.0
 
+    logger.info("epoch: {}, global step: {:6d}, loss: {:.4f}, cer: {:.4f}, elapsed: {:.2f}m {:.2f}h"
+                .format(epoch, global_step, float(now_loss), float(now_cer), epoch_elapsed, train_elapsed))
+
+    """
     # Generate Attention map
     if conf['model_parameter']['bucketing']:
         feature = listener(Variable(batch_data.float()).squeeze(0).cuda())
@@ -112,7 +122,7 @@ while global_step < total_steps:
             m = np.repeat(np.expand_dims(np.array(att_map[i][j]),0),3,axis=0)
             log_writer.add_image('attention_'+str(i)+'_head_'+str(j),
                                  torch.FloatTensor(m), global_step)
-
+    """
     # Checkpoint
     if best_ler >= sum(dev_ler)/len(dev_ler):
         best_ler = sum(dev_ler)/len(dev_ler)
@@ -132,4 +142,4 @@ now_loss, now_cer = np.array([sum(test_loss)/len(test_loss)]), np.mean(test_ler)
 log_writer.add_scalars('loss',{'test':now_loss}, global_step)
 log_writer.add_scalars('cer',{'test':now_cer}, global_step)
 
-logger.info("global step: {:6d}, loss: {:.4f}, cer: {:.4f}".format(global_step, float(now_loss), float(now_cer)))
+logger.info("test loss: {:.4f}, cer: {:.4f}".format(float(now_loss), float(now_cer)))
