@@ -124,5 +124,5 @@ for _,(batch_data,batch_label) in enumerate(test_set):
     test_loss.append(batch_loss)
     test_ler.extend(batch_ler)
 
-log_writer.add_scalars('loss',{'dev':np.array([sum(test_loss)/len(test_loss)])}, global_step)
-log_writer.add_scalars('cer',{'dev':np.array([np.array(test_ler).mean()])}, global_step)
+log_writer.add_scalars('loss',{'test':np.array([sum(test_loss)/len(test_loss)])}, global_step)
+log_writer.add_scalars('cer',{'test':np.array([np.array(test_ler).mean()])}, global_step)
