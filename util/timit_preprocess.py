@@ -69,11 +69,11 @@ def calc_norm_param(X):
 	for obs in X:
 		obs_len = obs.shape[0]
 		mean_val += np.mean(obs,axis=0)*obs_len
-		std_val += np.var(obs, axis=0)
+		std_val += np.std(obs, axis=0) * obs_len
 		total_len += obs_len
-	
+
 	mean_val /= total_len
-	std_val **= 0.5
+	std_val /= total_len
 
 	return mean_val, std_val, total_len
 
