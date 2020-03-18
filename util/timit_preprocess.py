@@ -169,9 +169,9 @@ print('Spliting {} out of {} ({}%) training data as validation set.'.format(int(
                                                                             val_split * 100))
 val_idx = [int(i) for i in random.sample(range(0, train_size), int(train_size * val_split))]
 
-X_train = [];
+X_train = []
 X_val = []
-y_train = [];
+y_train = []
 y_val = []
 for i in range(len(X_train_all)):
     if i in val_idx:
