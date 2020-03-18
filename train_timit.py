@@ -8,7 +8,7 @@ import torch
 import sys
 from tensorboardX import SummaryWriter
 import argparse
-
+from logger import *
 # Load config file for experiment
 parser = argparse.ArgumentParser(description='Training script for LAS on TIMIT .')
 
@@ -36,7 +36,7 @@ tf_rate_lowerbound = conf['training_parameter']['tf_rate_lowerbound']
 X_train, y_train, X_val, y_val, X_test, y_test = load_dataset(**conf['meta_variable'])
 train_set = create_dataloader(X_train, y_train, **conf['model_parameter'], **conf['training_parameter'], shuffle=True)
 valid_set = create_dataloader(X_val, y_val, **conf['model_parameter'], **conf['training_parameter'], shuffle=False)
-# test_set = create_dataloader(X_test, y_test, **conf['model_parameter'], **conf['training_parameter'], shuffle=False)
+test_set = create_dataloader(X_test, y_test, **conf['model_parameter'], **conf['training_parameter'], shuffle=False)
 
 # Construct LAS Model or load pretrained LAS model
 log_writer = SummaryWriter(conf['meta_variable']['training_log_dir'] + conf['meta_variable']['experiment_name'])
@@ -55,6 +55,8 @@ speller_model_path = conf['meta_variable']['checkpoint_dir'] + conf['meta_variab
 # save checkpoint with the best ler
 best_ler = 1.0
 global_step = 0
+
+train_begin = time.time()
 
 while global_step < total_steps:
 
@@ -82,8 +84,15 @@ while global_step < total_steps:
         dev_loss.append(batch_loss)
         dev_ler.extend(batch_ler)
 
-    log_writer.add_scalars('loss', {'dev': np.array([sum(dev_loss) / len(dev_loss)])}, global_step)
-    log_writer.add_scalars('cer', {'dev': np.array([np.array(dev_ler).mean()])}, global_step)
+    now_loss, now_cer = np.array([sum(dev_loss)/len(dev_loss)]), np.mean(dev_ler)
+    log_writer.add_scalars('loss',{'dev':now_loss}, global_step)
+    log_writer.add_scalars('cer',{'dev':now_cer}, global_step)
+
+    current = time.time()
+    train_elapsed = (current - train_begin) / 3600.0
+
+    logger.info("global step: {:6d}, loss: {:.4f}, cer: {:.4f}, elapsed: {:.2f}h"
+                .format(global_step, float(now_loss), float(now_cer), train_elapsed))
 
     # Generate Attention map
     if conf['model_parameter']['bucketing']:
@@ -119,3 +128,22 @@ while global_step < total_steps:
         best_ler = sum(dev_ler) / len(dev_ler)
         torch.save(listener, listener_model_path)
         torch.save(speller, speller_model_path)
+
+# Test
+test_loss = []
+test_ler = []
+for _, (batch_data, batch_label) in enumerate(test_set):
+    batch_loss, batch_ler = batch_iterator(batch_data, batch_label, listener, speller, optimizer,
+                                           tf_rate, is_training=False, **conf['model_parameter'])
+    test_loss.append(batch_loss)
+    test_ler.extend(batch_ler)
+
+now_loss, now_cer = np.array([sum(test_loss) / len(test_loss)]), np.mean(test_ler)
+log_writer.add_scalars('loss', {'test': now_loss}, global_step)
+log_writer.add_scalars('cer', {'test': now_cer}, global_step)
+
+current = time.time()
+train_elapsed = (current - train_begin) / 3600.0
+
+logger.info("global step: {:6d}, loss: {:.4f}, cer: {:.4f}, elapsed: {:.2f}h"
+            .format(global_step, float(now_loss), float(now_cer), train_elapsed))

@@ -21,7 +21,7 @@ if len(sys.argv) != 3:
     print('Usage: python3 preprocess.py <timit directory> <output_file>')
 
 ##### SCRIPT META VARIABLES #####
-phn_file_postfix = '.phn'
+phn_file_postfix = '.PHN'
 RIFF_wav_postfix = '.WAV'
 
 ##### Validation split #####
@@ -31,8 +31,8 @@ val_split = 0.05
 data_type = 'float32'
 
 paths = sys.argv[1]
-train_source_path = os.path.join(paths, 'train')
-test_source_path = os.path.join(paths, 'test')
+train_source_path = os.path.join(paths, 'TRAIN')
+test_source_path = os.path.join(paths, 'TEST')
 target_path = os.path.join(paths, sys.argv[2])
 
 # 61 different phonemes
@@ -59,7 +59,6 @@ def create_mfcc(filename):
 	[1 energy, 12 MFCC, 1 diff(energy), 12 diff(MFCC)
 	"""
 
-    (rate, sample) = wav.read(filename)
     rate, sample = 16000, np.fromfile(filename, dtype=np.int16)[512:]
 
     mfcc = features.mfcc(sample, rate, winlen=0.025, winstep=0.01, numcep=13, nfilt=26,
