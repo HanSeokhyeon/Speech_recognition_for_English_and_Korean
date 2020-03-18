@@ -147,4 +147,3 @@ while global_step < total_steps:
         best_ler = sum(dev_ler) / len(dev_ler)
         torch.save(listener, listener_model_path)
         torch.save(speller, speller_model_path)
-
