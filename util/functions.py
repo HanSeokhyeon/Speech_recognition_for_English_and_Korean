@@ -120,8 +120,6 @@ def batch_iterator(batch_data, batch_label, listener, speller, optimizer, tf_rat
         optimizer.step()
 
     batch_loss = loss.cpu().data.numpy()
-    
-
 
     return batch_loss, batch_ler
 

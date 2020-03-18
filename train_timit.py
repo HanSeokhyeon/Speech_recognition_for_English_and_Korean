@@ -95,6 +95,26 @@ for epoch in range(total_epochs):
     logger.info("epoch: {}, global step: {:6d}, loss: {:.4f}, cer: {:.4f}, elapsed: {:.2f}m {:.2f}h"
                 .format(epoch, global_step, float(now_loss), float(now_cer), epoch_elapsed, train_elapsed))
 
+    # Test
+    test_loss = []
+    test_ler = []
+    for _, (batch_data, batch_label) in enumerate(test_set):
+        batch_loss, batch_ler = batch_iterator(batch_data, batch_label, listener, speller, optimizer,
+                                               tf_rate, is_training=False, **conf['model_parameter'])
+        test_loss.append(batch_loss)
+        test_ler.extend(batch_ler)
+
+    now_loss, now_cer = np.array([sum(test_loss) / len(test_loss)]), np.mean(test_ler)
+    log_writer.add_scalars('loss', {'test': now_loss}, global_step)
+    log_writer.add_scalars('cer', {'test': now_cer}, global_step)
+
+    current = time.time()
+    epoch_elapsed = (current - epoch_begin) / 60.0
+    train_elapsed = (current - train_begin) / 3600.0
+
+    logger.info("epoch: {}, global step: {:6d}, loss: {:.4f}, cer: {:.4f}, elapsed: {:.2f}m {:.2f}h"
+                .format(epoch, global_step, float(now_loss), float(now_cer), epoch_elapsed, train_elapsed))
+
     """
     # Generate Attention map
     if conf['model_parameter']['bucketing']:
@@ -131,17 +151,4 @@ for epoch in range(total_epochs):
         torch.save(listener, listener_model_path)
         torch.save(speller, speller_model_path)
 
-# Test
-test_loss = []
-test_ler = []
-for _,(batch_data,batch_label) in enumerate(test_set):
-    batch_loss, batch_ler = batch_iterator(batch_data, batch_label, listener, speller, optimizer,
-                                           tf_rate, is_training=False, **conf['model_parameter'])
-    test_loss.append(batch_loss)
-    test_ler.extend(batch_ler)
 
-now_loss, now_cer = np.array([sum(test_loss)/len(test_loss)]), np.mean(test_ler)
-log_writer.add_scalars('loss',{'test':now_loss}, global_step)
-log_writer.add_scalars('cer',{'test':now_cer}, global_step)
-
-logger.info("test loss: {:.4f}, cer: {:.4f}".format(float(now_loss), float(now_cer)))

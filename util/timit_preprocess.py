@@ -68,7 +68,7 @@ def calc_norm_param(X):
 	std_val = np.zeros(X[0].shape[1]) # 39
 	for obs in X:
 		obs_len = obs.shape[0]
-		mean_val += np.mean(obs,axis=0)*obs_len
+		mean_val += np.mean(obs,axis=0) * obs_len
 		std_val += np.std(obs, axis=0) * obs_len
 		total_len += obs_len
 
