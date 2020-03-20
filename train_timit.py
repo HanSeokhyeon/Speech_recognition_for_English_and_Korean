@@ -5,6 +5,7 @@ from util.functions import batch_iterator
 import numpy as np
 from torch.autograd import Variable
 import torch
+import torch.nn as nn
 import sys
 from tensorboardX import SummaryWriter
 import argparse
@@ -49,6 +50,10 @@ optimizer = torch.optim.Adam([{'params':listener.parameters()}, {'params':spelle
                              lr=conf['training_parameter']['learning_rate'])
 listener_model_path = conf['meta_variable']['checkpoint_dir']+conf['meta_variable']['experiment_name']+'.listener'
 speller_model_path = conf['meta_variable']['checkpoint_dir']+conf['meta_variable']['experiment_name']+'.speller'
+
+if conf['model_parameter']['use_gpu']:
+    listener = nn.DataParallel(listener).to('cuda')
+    speller = nn.DataParallel(speller).to('cuda')
 
 # save checkpoint with the best ler
 best_ler = 1.0

@@ -89,6 +89,7 @@ def batch_iterator(batch_data, batch_label, listener, speller, optimizer, tf_rat
         batch_data = batch_data.cuda()
         batch_label = batch_label.cuda()
         criterion = criterion.cuda()
+
     # Forwarding
     optimizer.zero_grad()
     listner_feature = listener(batch_data)

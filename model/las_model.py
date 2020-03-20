@@ -27,6 +27,7 @@ class pBLSTMLayer(nn.Module):
                                    dropout=dropout_rate,batch_first=True)
     
     def forward(self,input_x):
+        self.BLSTM.flatten_parameters()
         batch_size = input_x.size(0)
         timestep = input_x.size(1)
         feature_dim = input_x.size(2)
@@ -93,6 +94,7 @@ class Speller(nn.Module):
         return raw_pred, hidden_state, context, attention_score
 
     def forward(self, listener_feature, ground_truth=None, teacher_force_rate = 0.9):
+        self.rnn_layer.flatten_parameters()
         if ground_truth is None:
             teacher_force_rate = 0
         teacher_force = True if np.random.random_sample() < teacher_force_rate else False
