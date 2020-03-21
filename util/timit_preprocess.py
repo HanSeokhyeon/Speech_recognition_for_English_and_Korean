@@ -77,10 +77,12 @@ def calc_norm_param(X):
 
 	return mean_val, std_val, total_len
 
+
 def normalize(X, mean_val, std_val):
 	for i in range(len(X)):
 		X[i] = (X[i] - mean_val)/std_val
 	return X
+
 
 def set_type(X, type):
 	for i in range(len(X)):
