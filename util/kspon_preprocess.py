@@ -42,13 +42,12 @@ train_file_num = 3696
 valid_file_num = 400
 test_file_num = 192
 train_path = glob.glob("{}/*".format(directories[0])) \
-                    + os.listdir("{}/{}".format(paths, directories[1])) \
-                    + os.listdir("{}/{}".format(paths, directories[2])) \
-                    + os.listdir("{}/{}".format(paths, directories[3]))
+				+ glob.glob("{}/*".format(directories[1])) \
+				+ glob.glob("{}/*".format(directories[2])) \
+				+ glob.glob("{}/*".format(directories[3]))
 train_path = sorted(set([fname[:-4] for fname in train_path]))
 train_path = train_path[:train_file_num]
-train_path = [os.path.join(paths, )]
-valid_test_path = os.listdir("{}/{}".format(paths, directories[4]))
+valid_test_path = glob.glob("{}/*".format(directories[4]))
 valid_test_path = sorted(set([fname[:-4] for fname in valid_test_path]))
 valid_path = valid_test_path[:valid_file_num]
 test_path = valid_test_path[valid_file_num:valid_file_num+test_file_num]
@@ -117,7 +116,10 @@ def preprocess_dataset(file_list):
 
 		X.append(X_val)
 
-		y_origin = np.loadtxt(txt_fname)
+		y_origin = np.loadtxt(txt_fname, dtype=str, encoding='cp949')
+		# y_origin = list("".join(y_origin))
+		y_val = []
+		for y in y_origin:
 
 		y_val = np.ndarray([])
 		Y.append(y_val.astype('int32'))
