@@ -96,7 +96,7 @@ def preprocess_dataset(file_list):
 	X = []
 	Y = []
 
-	for fname in file_list:
+	for fname in file_list[:]:
 		phn_fname = "{}/{}{}".format(paths, fname, phn_file_postfix)
 		wav_fname = "{}/{}{}".format(paths, fname, wav_file_postfix)
 
@@ -145,6 +145,12 @@ X_valid, y_valid = preprocess_dataset(valid_path)
 print('Preprocessing test data...')
 X_test, y_test = preprocess_dataset(test_path)
 print('Preprocessing completed.')
+
+train_max = max(X_train, key=np.shape).shape[0]
+valid_max = max(X_valid, key=np.shape).shape[0]
+test_max = max(X_test, key=np.shape).shape[0]
+all_max = max(train_max, valid_max, test_max)
+print('Max timestep: {}'.format(all_max))
 
 print()
 print('Collected {} training instances (should be 3696 in complete TIMIT )'.format(len(X_train)))

@@ -12,7 +12,7 @@ import argparse
 from logger import *
 
 # Load config file for experiment
-parser = argparse.ArgumentParser(description='Training script for LAS on TIMIT .')
+parser = argparse.ArgumentParser(description='Training script for LAS on TIMIT.')
 parser.add_argument('config_path', metavar='config_path', type=str, help='Path to config file for training.')
 paras = parser.parse_args()
 config_path = paras.config_path

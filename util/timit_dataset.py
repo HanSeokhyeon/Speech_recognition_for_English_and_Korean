@@ -10,7 +10,7 @@ def load_dataset(data_path, **kwargs):
         assert len(data) > 0
     return X_train, y_train, X_val, y_val, X_test, y_test
 
-# Input x: list of np array with shape (timestep,feature)
+# Input x: list of np array with shape (timestep, feature)
 # Return new_x : a np array of shape (len(x), padded_timestep, feature)
 def zero_padding(x, pad_len):
     features = x[0].shape[-1]

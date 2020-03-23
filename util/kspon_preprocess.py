@@ -213,12 +213,24 @@ print('Preprocessing test data...')
 X_test, y_test = preprocess_dataset(test_path)
 print('Preprocessing completed.')
 
+X_train_max = max(X_train, key=np.shape).shape[0]
+X_valid_max = max(X_valid, key=np.shape).shape[0]
+X_test_max = max(X_test, key=np.shape).shape[0]
+X_max = max(X_train_max, X_valid_max, X_test_max)
+print('Max timestep: {}'.format(X_max))
+
 with open("korean_labels.json", 'w', encoding='UTF-8-sig') as f:
     json.dump(y_label, f, ensure_ascii=False)
 
 y_train = char2index(y_train)
 y_valid = char2index(y_valid)
 y_test = char2index(y_test)
+
+y_train_max = max(y_train, key=np.shape).shape[0]
+y_valid_max = max(y_valid, key=np.shape).shape[0]
+y_test_max = max(y_test, key=np.shape).shape[0]
+y_max = max(y_train_max, y_valid_max, y_test_max)
+print('Max label len: {}'.format(y_max))
 
 print()
 print('Collected {} training instances (should be 3696 in complete TIMIT )'.format(len(X_train)))
