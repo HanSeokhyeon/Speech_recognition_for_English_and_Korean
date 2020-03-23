@@ -24,16 +24,6 @@ data_type = 'float32'
 
 paths = sys.argv[1] + '/*'
 directories = glob.glob(paths)
-# random.shuffle(directories)
-# dir_num = len(directories)
-# train_num = int(dir_num * test_split)
-# test_num = dir_num - train_num
-# valid_num = int(train_num * val_split)
-# train_num = train_num - valid_num
-# train_source_path = directories[:train_num]
-# valid_source_path = directories[train_num:train_num+valid_num]
-# test_source_path = directories[train_num+valid_num:]
-
 directories.sort()
 if '.DS_Store' in directories:
     os.remove("{}/{}".format(paths, '.DS_Store'))
@@ -102,6 +92,29 @@ def set_type(X, type):
 	return X
 
 
+def remove_bracket(s):
+	result = []
+	find = [False]*4
+	for c in s:
+		if c == '(' and not find[0]:
+			find[0] = True
+		elif c == ')' and not find[1]:
+			find[1] = True
+		elif c == '(' and not find[2]:
+			find[2] = True
+		elif c == ')' and not find[3]:
+			find[3] = True
+		elif find[0] and not find[1]:
+			continue
+		else:
+			result.append(c)
+	return s
+
+
+def remove_symbols(s):
+
+
+
 def preprocess_dataset(file_list):
 	i = 0
 	X = []
@@ -116,10 +129,11 @@ def preprocess_dataset(file_list):
 
 		X.append(X_val)
 
-		y_origin = np.loadtxt(txt_fname, dtype=str, encoding='cp949')
+		y_origin = list(" ".join(np.loadtxt(txt_fname, dtype=str, encoding='cp949')))
 		# y_origin = list("".join(y_origin))
 		y_val = []
-		for y in y_origin:
+		y_no_bracket = remove_bracket(y_origin)
+		y_no_symbols = remove_symbol(y_no_bracket)
 
 		y_val = np.ndarray([])
 		Y.append(y_val.astype('int32'))
