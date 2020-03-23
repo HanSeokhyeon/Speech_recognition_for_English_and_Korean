@@ -192,12 +192,21 @@ def preprocess_dataset(file_list):
     return X, Y
 
 
+def char2index(ys):
+    new_ys = []
+    for s in ys:
+        new_y = []
+        for c in s:
+            new_y.append(y_label[c][0])
+        new_ys.append(np.array(new_y))
+    return new_ys
+
+
 ##### PREPROCESSING #####
 print()
 
 print('Preprocessing train data...')
 X_train, y_train = preprocess_dataset(train_path)
-# y_train =
 print('Preprocessing valid data...')
 X_valid, y_valid = preprocess_dataset(valid_path)
 print('Preprocessing test data...')
@@ -206,6 +215,10 @@ print('Preprocessing completed.')
 
 with open("korean_labels.json", 'w', encoding='UTF-8-sig') as f:
     json.dump(y_label, f, ensure_ascii=False)
+
+y_train = char2index(y_train)
+y_valid = char2index(y_valid)
+y_test = char2index(y_test)
 
 print()
 print('Collected {} training instances (should be 3696 in complete TIMIT )'.format(len(X_train)))
