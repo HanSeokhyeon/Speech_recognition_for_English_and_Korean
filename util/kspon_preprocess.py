@@ -6,6 +6,7 @@ import random; random.seed(int(timeit.default_timer()))
 from six.moves import cPickle
 import numpy as np
 import python_speech_features as features
+import json
 
 if len(sys.argv) != 3:
     print('Usage:python3 preprocess.py <kspon directory> <output_file>')
@@ -41,7 +42,7 @@ valid_test_path = glob.glob("{}/*".format(directories[4]))
 valid_test_path = sorted(set([fname[:-4] for fname in valid_test_path]))
 valid_path = valid_test_path[:valid_file_num]
 test_path = valid_test_path[valid_file_num:valid_file_num+test_file_num]
-target_path = os.path.join(paths, sys.argv[2])
+target_path = os.path.join(paths[:-2], sys.argv[2])
 
 y_label = {}
 
@@ -154,9 +155,9 @@ def special_filter(sentence):
 def add_y_label(y):
     for c in y:
         if c not in y_label:
-            y_label[c] = 1
+            y_label[c] = [len(y_label), 1]
         else:
-            y_label[c] += 1
+            y_label[c][1] += 1
 
 
 def preprocess_dataset(file_list):
@@ -164,7 +165,7 @@ def preprocess_dataset(file_list):
     X = []
     Y = []
 
-    for fname in file_list[:10]:
+    for fname in file_list[:]:
         txt_fname = "{}{}".format(fname, txt_file_postfix)
         pcm_fname = "{}{}".format(fname, pcm_file_postfix)
 
@@ -182,8 +183,7 @@ def preprocess_dataset(file_list):
 
         add_y_label(y_remove)
 
-        # y_val = np.ndarray([y_remove])
-        # Y.append(y_val.astype('int32'))
+        Y.append(y_remove)
 
         i += 1
         print('file No.', i, end='\r', flush=True)
@@ -197,11 +197,15 @@ print()
 
 print('Preprocessing train data...')
 X_train, y_train = preprocess_dataset(train_path)
+# y_train =
 print('Preprocessing valid data...')
 X_valid, y_valid = preprocess_dataset(valid_path)
 print('Preprocessing test data...')
 X_test, y_test = preprocess_dataset(test_path)
 print('Preprocessing completed.')
+
+with open("korean_labels.json", 'w', encoding='UTF-8-sig') as f:
+    json.dump(y_label, f, ensure_ascii=False)
 
 print()
 print('Collected {} training instances (should be 3696 in complete TIMIT )'.format(len(X_train)))
