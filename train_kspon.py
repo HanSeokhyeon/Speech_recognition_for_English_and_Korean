@@ -68,7 +68,7 @@ for epoch in range(total_epochs):
     # Training
     for batch_index, (batch_data, batch_label) in enumerate(train_set):
         batch_loss, batch_ler = batch_iterator(batch_data, batch_label, listener, speller, optimizer,
-                                               tf_rate, is_training=True, **conf['model_parameter'])
+                                               tf_rate, is_training=True, data='kspon', **conf['model_parameter'])
 
         global_step += 1
 
@@ -81,7 +81,7 @@ for epoch in range(total_epochs):
     dev_ler = []
     for _, (batch_data, batch_label) in enumerate(valid_set):
         batch_loss, batch_ler = batch_iterator(batch_data, batch_label, listener, speller, optimizer,
-                                               tf_rate, is_training=False, **conf['model_parameter'])
+                                               tf_rate, is_training=False, data='kspon', **conf['model_parameter'])
         dev_loss.append(batch_loss)
         dev_ler.extend(batch_ler)
 
@@ -101,7 +101,7 @@ for epoch in range(total_epochs):
     test_ler = []
     for _, (batch_data, batch_label) in enumerate(test_set):
         batch_loss, batch_ler = batch_iterator(batch_data, batch_label, listener, speller, optimizer,
-                                               tf_rate, is_training=False, **conf['model_parameter'])
+                                               tf_rate, is_training=False, data='kspon', **conf['model_parameter'])
         test_loss.append(batch_loss)
         test_ler.extend(batch_ler)
 

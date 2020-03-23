@@ -42,7 +42,8 @@ valid_test_path = glob.glob("{}/*".format(directories[4]))
 valid_test_path = sorted(set([fname[:-4] for fname in valid_test_path]))
 valid_path = valid_test_path[:valid_file_num]
 test_path = valid_test_path[valid_file_num:valid_file_num+test_file_num]
-target_path = os.path.join(paths[:-2], sys.argv[2])
+parent = os.path.abspath(os.path.join(paths[:-2], os.pardir))
+target_path = os.path.join(parent, sys.argv[2])
 
 y_label = {}
 
