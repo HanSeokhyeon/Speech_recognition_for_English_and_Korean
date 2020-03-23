@@ -51,9 +51,9 @@ optimizer = torch.optim.Adam([{'params':listener.parameters()}, {'params':spelle
 listener_model_path = conf['meta_variable']['checkpoint_dir']+conf['meta_variable']['experiment_name']+'.listener'
 speller_model_path = conf['meta_variable']['checkpoint_dir']+conf['meta_variable']['experiment_name']+'.speller'
 
-if conf['model_parameter']['use_gpu']:
-    listener = nn.DataParallel(listener).to('cuda')
-    speller = nn.DataParallel(speller).to('cuda')
+# if conf['model_parameter']['use_gpu']:
+#     listener = nn.DataParallel(listener).to('cuda')
+#     speller = nn.DataParallel(speller).to('cuda')
 
 # save checkpoint with the best ler
 best_ler = 1.0

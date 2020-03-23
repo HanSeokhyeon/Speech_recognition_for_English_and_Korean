@@ -43,6 +43,8 @@ valid_path = valid_test_path[:valid_file_num]
 test_path = valid_test_path[valid_file_num:valid_file_num+test_file_num]
 target_path = os.path.join(paths, sys.argv[2])
 
+y_label = {}
+
 
 def create_mfcc(filename):
 	"""Perform standard preprocessing, as described by Alex Graves (2012)
@@ -111,38 +113,83 @@ def remove_bracket(s):
 	return s
 
 
-def remove_symbols(s):
+def bracket_filter(sentence):
+    new_sentence = str()
+    flag = False
 
+    for ch in sentence:
+        if ch == '(' and flag == False:
+            flag = True
+            continue
+        if ch == '(' and flag == True:
+            flag = False
+            continue
+        if ch != ')' and flag == False:
+            new_sentence += ch
+    return new_sentence
+
+
+def special_filter(sentence):
+    SENTENCE_MARK = ['.', '?', ',', '!']
+    NOISE = ['o', 'n', 'u', 'b', 'l']
+    EXCEPT = ['/', '+', '*', '-', '@', '$', '^', '&', '[', ']', '=', ':', ';']
+    import re
+    new_sentence = str()
+    for idx, ch in enumerate(sentence):
+        if ch not in SENTENCE_MARK:
+            # o/, n/ 등 처리
+            if idx + 1 < len(sentence) and ch in NOISE and sentence[idx+1] == '/':
+                continue
+        if ch == '%':
+            new_sentence += '퍼센트'
+        elif ch == '#':
+            new_sentence += '샾'
+        elif ch not in EXCEPT:
+            new_sentence += ch
+    pattern = re.compile(r'\s\s+')
+    new_sentence = re.sub(pattern, ' ', new_sentence.strip())
+    return new_sentence
+
+
+def add_y_label(y):
+    for c in y:
+        if c not in y_label:
+            y_label[c] = 1
+        else:
+            y_label[c] += 1
 
 
 def preprocess_dataset(file_list):
-	i = 0
-	X = []
-	Y = []
+    i = 0
+    X = []
+    Y = []
 
-	for fname in file_list:
-		txt_fname = "{}{}".format(fname, txt_file_postfix)
-		pcm_fname = "{}{}".format(fname, pcm_file_postfix)
+    for fname in file_list[:10]:
+        txt_fname = "{}{}".format(fname, txt_file_postfix)
+        pcm_fname = "{}{}".format(fname, pcm_file_postfix)
 
-		X_val, total_frames = create_mfcc(pcm_fname)
-		total_frames = int(total_frames)
+        X_val, total_frames = create_mfcc(pcm_fname)
+        total_frames = int(total_frames)
 
-		X.append(X_val)
+        X.append(X_val)
 
-		y_origin = list(" ".join(np.loadtxt(txt_fname, dtype=str, encoding='cp949')))
-		# y_origin = list("".join(y_origin))
-		y_val = []
-		y_no_bracket = remove_bracket(y_origin)
-		y_no_symbols = remove_symbol(y_no_bracket)
+        y = np.loadtxt(txt_fname, dtype=str, encoding='cp949')
+        if y.size > 1:
+            y_origin = " ".join(y)
+        else:
+            y_origin = str(y)
+        y_remove = special_filter(bracket_filter(y_origin))
 
-		y_val = np.ndarray([])
-		Y.append(y_val.astype('int32'))
+        add_y_label(y_remove)
 
-		i += 1
-		print('file No.', i, end='\r', flush=True)
+        # y_val = np.ndarray([y_remove])
+        # Y.append(y_val.astype('int32'))
 
-	print('Done')
-	return X, Y
+        i += 1
+        print('file No.', i, end='\r', flush=True)
+
+    print('Done')
+    return X, Y
 
 
 ##### PREPROCESSING #####
