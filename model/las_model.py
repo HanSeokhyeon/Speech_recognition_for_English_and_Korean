@@ -12,6 +12,21 @@ from util.functions import TimeDistributed,CreateOnehotVariable
 import numpy as np
 
 
+class LAS(nn.Module):
+    def __init__(self, listener, speller):
+        super(LAS, self).__init__()
+        self.listener = listener
+        self.speller = speller
+
+    def forward(self, batch_data, batch_label, tf_rate, is_training):
+        listner_feature = self.listener(batch_data)
+        if is_training:
+            raw_pred_seq, _ = self.speller(listner_feature, ground_truth=batch_label, teacher_force_rate=tf_rate)
+        else:
+            raw_pred_seq, _ = self.speller(listner_feature, ground_truth=None, teacher_force_rate=0)
+
+        return raw_pred_seq
+
 
 # BLSTM layer for pBLSTM
 # Step 1. Reduce time resolution to half
