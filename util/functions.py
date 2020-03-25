@@ -92,7 +92,6 @@ def batch_iterator(batch_data, batch_label, model, optimizer, tf_rate, is_traini
         model = model.cuda()
 
     # Forwarding
-    optimizer.zero_grad()
     raw_pred_seq = model(batch_data, batch_label, tf_rate, is_training)
 
     pred_y = (torch.cat([torch.unsqueeze(each_y,1) for each_y in raw_pred_seq],1)[:,:max_label_len,:]).contiguous()
@@ -113,6 +112,7 @@ def batch_iterator(batch_data, batch_label, model, optimizer, tf_rate, is_traini
         batch_ler = LetterErrorRate(torch.max(pred_y,dim=2)[1].cpu().numpy(),#.reshape(current_batch_size,max_label_len),
                                     torch.max(true_y,dim=2)[1].cpu().data.numpy(),data) #.reshape(current_batch_size,max_label_len), data)
 
+    optimizer.zero_grad()
     if is_training:
         loss.backward()
         optimizer.step()
