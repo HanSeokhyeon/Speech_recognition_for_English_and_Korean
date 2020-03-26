@@ -1,9 +1,10 @@
 import yaml
 from util.kspon_dataset import load_dataset, create_dataloader
-from model.las_model import Listener, Speller
+from model.las_model import LAS, Listener, Speller
 from util.functions import batch_iterator
 import numpy as np
 import torch
+import torch.nn as nn
 from tensorboardX import SummaryWriter
 import argparse
 from logger import *
@@ -13,8 +14,10 @@ parser.add_argument('config_path', metavar='config_path', type=str, help='Path t
 paras = parser.parse_args()
 config_path = paras.config_path
 conf = yaml.load(open(config_path, 'r'))
+device = 'cuda'
 if not torch.cuda.is_available():
     conf['model_parameter']['use_gpu'] = False
+    device = 'cpu'
 
 # Parameters loading
 torch.manual_seed(conf['training_parameter']['seed'])
@@ -42,6 +45,11 @@ if not use_pretrained:
 else:
     listener = torch.load(conf['training_parameter']['pretrained_listener_path'])
     speller = torch.load(conf['training_parameter']['pretrained_speller_path'])
+
+model = LAS(listener, speller)
+model = nn.DataParallel(model)
+model.to(device)
+
 optimizer = torch.optim.Adam([{'params':listener.parameters()}, {'params':speller.parameters()}],
                              lr=conf['training_parameter']['learning_rate'])
 listener_model_path = conf['meta_variable']['checkpoint_dir']+conf['meta_variable']['experiment_name']+'.listener'
@@ -67,7 +75,7 @@ for epoch in range(total_epochs):
 
     # Training
     for batch_index, (batch_data, batch_label) in enumerate(train_set):
-        batch_loss, batch_ler = batch_iterator(batch_data, batch_label, listener, speller, optimizer,
+        batch_loss, batch_ler = batch_iterator(batch_data, batch_label, model, optimizer,
                                                tf_rate, is_training=True, data='kspon', **conf['model_parameter'])
 
         global_step += 1
@@ -80,7 +88,7 @@ for epoch in range(total_epochs):
     dev_loss = []
     dev_ler = []
     for _, (batch_data, batch_label) in enumerate(valid_set):
-        batch_loss, batch_ler = batch_iterator(batch_data, batch_label, listener, speller, optimizer,
+        batch_loss, batch_ler = batch_iterator(batch_data, batch_label, model, optimizer,
                                                tf_rate, is_training=False, data='kspon', **conf['model_parameter'])
         dev_loss.append(batch_loss)
         dev_ler.extend(batch_ler)
@@ -100,7 +108,7 @@ for epoch in range(total_epochs):
     test_loss = []
     test_ler = []
     for _, (batch_data, batch_label) in enumerate(test_set):
-        batch_loss, batch_ler = batch_iterator(batch_data, batch_label, listener, speller, optimizer,
+        batch_loss, batch_ler = batch_iterator(batch_data, batch_label, model, optimizer,
                                                tf_rate, is_training=False, data='kspon', **conf['model_parameter'])
         test_loss.append(batch_loss)
         test_ler.extend(batch_ler)
