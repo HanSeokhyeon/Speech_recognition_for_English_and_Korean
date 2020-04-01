@@ -18,34 +18,12 @@ pcm_file_postfix = '.pcm'
 
 ##### Validation split #####
 # default using 5% of data as validation
-test_split = 0.8
-val_split = 0.1
+split_ratio = [0.95, 0.03, 0.02]
 
 data_type = 'float32'
 
-paths = sys.argv[1] + '/*'
-directories = glob.glob(paths)
-directories.sort()
-if '.DS_Store' in directories:
-    os.remove("{}/{}".format(paths, '.DS_Store'))
-    directories.remove('.DS_Store')
-
-# use all file
-train_file_num = 3696
-valid_file_num = 400
-test_file_num = 192
-train_path = glob.glob("{}/*".format(directories[0])) \
-				+ glob.glob("{}/*".format(directories[1])) \
-				+ glob.glob("{}/*".format(directories[2])) \
-				+ glob.glob("{}/*".format(directories[3]))
-train_path = sorted(set([fname[:-4] for fname in train_path]))
-train_path = train_path[:train_file_num]
-valid_test_path = glob.glob("{}/*".format(directories[4]))
-valid_test_path = sorted(set([fname[:-4] for fname in valid_test_path]))
-valid_path = valid_test_path[:valid_file_num]
-test_path = valid_test_path[valid_file_num:valid_file_num+test_file_num]
-parent = os.path.abspath(os.path.join(paths[:-2], os.pardir))
-target_path = os.path.join(parent, sys.argv[2])
+paths = sys.argv[1]
+target_path = os.path.join(paths, sys.argv[2])
 
 y_label = {}
 
@@ -163,33 +141,36 @@ def add_y_label(y):
             y_label[c][1] += 1
 
 
-def preprocess_dataset(file_list):
+def preprocess_dataset(source_path):
     i = 0
     X = []
     Y = []
 
-    for fname in file_list[:]:
-        txt_fname = "{}{}".format(fname, txt_file_postfix)
-        pcm_fname = "{}{}".format(fname, pcm_file_postfix)
+    for dir_name, subdir_list, file_list in os.walk(source_path):
+        for fname in file_list:
+            if not fname.endswith(txt_file_postfix):
+                continue
+            txt_fname = "{}/{}".format(dir_name, fname)
+            pcm_fname = "{}/{}{}".format(dir_name, fname[:-4], pcm_file_postfix)
 
-        X_val, total_frames = create_mfcc(pcm_fname)
-        total_frames = int(total_frames)
+            X_val, total_frames = create_mfcc(pcm_fname)
+            total_frames = int(total_frames)
 
-        X.append(X_val)
+            X.append(X_val)
 
-        y = np.loadtxt(txt_fname, dtype=str, encoding='cp949')
-        if y.size > 1:
-            y_origin = " ".join(y)
-        else:
-            y_origin = str(y)
-        y_remove = special_filter(bracket_filter(y_origin))
+            y = np.loadtxt(txt_fname, dtype=str, encoding='cp949')
+            if y.size > 1:
+                y_origin = " ".join(y)
+            else:
+                y_origin = str(y)
+            y_remove = special_filter(bracket_filter(y_origin))
 
-        add_y_label(y_remove)
+            add_y_label(y_remove)
 
-        Y.append(y_remove)
+            Y.append(y_remove)
 
-        i += 1
-        print('file No.', i, end='\r', flush=True)
+            i += 1
+            print('file No.', i, end='\r', flush=True)
 
     print('Done')
     return X, Y
@@ -208,37 +189,31 @@ def char2index(ys):
 ##### PREPROCESSING #####
 print()
 
-print('Preprocessing train data...')
-X_train, y_train = preprocess_dataset(train_path)
-print('Preprocessing valid data...')
-X_valid, y_valid = preprocess_dataset(valid_path)
-print('Preprocessing test data...')
-X_test, y_test = preprocess_dataset(test_path)
-print('Preprocessing completed.')
+print('Preprocessing data...')
+X_all, y_all = preprocess_dataset(paths)
 
-X_train_max = max(X_train, key=np.shape).shape[0]
-X_valid_max = max(X_valid, key=np.shape).shape[0]
-X_test_max = max(X_test, key=np.shape).shape[0]
-X_max = max(X_train_max, X_valid_max, X_test_max)
+X_max = max(X_all, key=np.shape).shape[0]
 print('Max timestep: {}'.format(X_max))
 
 with open("korean_labels.json", 'w', encoding='UTF-8-sig') as f:
     json.dump(y_label, f, ensure_ascii=False)
 
-y_train = char2index(y_train)
-y_valid = char2index(y_valid)
-y_test = char2index(y_test)
+y_all = char2index(y_all)
 
-y_train_max = max(y_train, key=np.shape).shape[0]
-y_valid_max = max(y_valid, key=np.shape).shape[0]
-y_test_max = max(y_test, key=np.shape).shape[0]
-y_max = max(y_train_max, y_valid_max, y_test_max)
+y_max = max(y_all, key=np.shape).shape[0]
 print('Max label len: {}'.format(y_max))
 
+num = len(X_all)
+train_num = int(num * split_ratio[0])
+valid_num = int(num * split_ratio[1])
+test_num = num - train_num - valid_num
+X_train, y_train = X_all[:train_num], y_all[:train_num]
+X_valid, y_valid = X_all[train_num:train_num+valid_num], y_all[train_num:train_num+valid_num]
+X_test, y_test = X_all[train_num+valid_num:], y_all[train_num+valid_num:]
 print()
-print('Collected {} training instances (should be 3696 in complete TIMIT )'.format(len(X_train)))
-print('Collected {} validating instances (should be 400 in complete TIMIT )'.format(len(X_valid)))
-print('Collected {} testing instances (should be 192 in complete TIMIT )'.format(len(X_test)))
+print('Collected {} training instances'.format(len(X_train)))
+print('Collected {} validating instances'.format(len(X_valid)))
+print('Collected {} testing instances'.format(len(X_test)))
 
 print()
 print('Normalizing data to let mean=0, sd=1 for each channel.')
