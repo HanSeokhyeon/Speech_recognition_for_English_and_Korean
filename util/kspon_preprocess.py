@@ -29,6 +29,8 @@ directories.sort()
 if '.DS_Store' in directories:
     os.remove("{}/{}".format(paths, '.DS_Store'))
     directories.remove('.DS_Store')
+
+# use all file
 train_file_num = 3696
 valid_file_num = 400
 test_file_num = 192

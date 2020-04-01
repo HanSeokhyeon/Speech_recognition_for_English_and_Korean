@@ -23,13 +23,14 @@ model_parameter:
   bucketing: False                            # Bucket training data by input sequence length
                                               # (Tested and found not improving performance on TIMIT)
   label_smoothing: 0.1                        # Epsilon for label smoothing (set 0 to disable LS)
+  dropout_rate: 0.5
 
 
 training_parameter:
-  learning_rate: 0.0001
+  learning_rate: 0.001
   seed: 1
-  total_epochs: 1000
-  batch_size: 64
+  total_epochs: 200
+  batch_size: 4
   tf_rate_upperbound: 0.8                     # teacher forcing rate during training will be linearly
   tf_rate_lowerbound: 0.0                     # decayinn from upperbound to lower bound for each epoch
   verbose_step: 5                             # Show progress every verbose_step
