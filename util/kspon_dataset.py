@@ -30,11 +30,13 @@ def zero_padding(x, pad_len):
 # Input y: list of np array with shape ()
 # Output tuple: (indices, values, shape)
 def one_hot_encode(Y, max_len, max_idx):
-    new_y = np.zeros((len(Y), max_len, max_idx+2))
+    # max_length = max(Y, key=np.shape).shape[0]
+    # print(max_length)
+    new_y = np.zeros((len(Y), max_len, max_idx+2), dtype=np.int8)
     for idx, label_seq in enumerate(Y):
         for cnt, label in enumerate(label_seq):
-            new_y[idx, cnt, label+2] = 1.0
-        new_y[idx, cnt+1, 1] = 1.0 # <eos>
+            new_y[idx, cnt, label+2] = 1
+        new_y[idx, cnt+1, 1] = 1 # <eos>
     return new_y
 
 class KsponDataset(Dataset):
@@ -43,7 +45,7 @@ class KsponDataset(Dataset):
         self.Y = one_hot_encode(Y, max_label_len, len(char2label))
 
     def __getitem__(self, index):
-        return self.X[index], self.Y[index]
+        return self.X[index], self.Y[index].astype(float)
     def __len__(self):
         return len(self.X)
 

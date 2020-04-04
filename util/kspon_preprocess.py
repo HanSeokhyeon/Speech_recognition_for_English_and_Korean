@@ -168,7 +168,7 @@ def preprocess_dataset(source_path):
                 y_origin = str(y)
             y_remove = special_filter(bracket_filter(y_origin))
 
-            if len(y_remove) > 77:
+            if len(y_remove) > 76:
                 continue
 
             add_y_label(y_remove)
