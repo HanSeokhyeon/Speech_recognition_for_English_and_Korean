@@ -156,6 +156,9 @@ def preprocess_dataset(source_path):
             X_val, total_frames = create_mfcc(pcm_fname)
             total_frames = int(total_frames)
 
+            if total_frames > 784:
+                continue
+
             X.append(X_val)
 
             y = np.loadtxt(txt_fname, dtype=str, encoding='cp949')
@@ -164,6 +167,9 @@ def preprocess_dataset(source_path):
             else:
                 y_origin = str(y)
             y_remove = special_filter(bracket_filter(y_origin))
+
+            if len(y_remove) > 77:
+                continue
 
             add_y_label(y_remove)
 
