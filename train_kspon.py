@@ -83,7 +83,6 @@ for epoch in range(total_epochs):
 
     # Training
     for batch_index, (batch_data, batch_label) in enumerate(train_set):
-        break
         batch_loss, batch_ler = batch_iterator(batch_data, batch_label, model, optimizer,
                                                tf_rate, is_training=True, data='kspon', **conf['model_parameter'])
 
