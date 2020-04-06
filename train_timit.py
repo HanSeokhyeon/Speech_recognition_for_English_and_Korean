@@ -35,7 +35,10 @@ tf_rate_lowerbound = conf['training_parameter']['tf_rate_lowerbound']
 # X : Padding to shape [num of sample, max_timestep, feature_dim]
 # Y : Squeeze repeated label and apply one-hot encoding (preserve 0 for <sos> and 1 for <eos>)
 X_train, y_train, X_valid, y_valid, X_test, y_test = load_dataset(**conf['meta_variable'])
+print(len(X_train))
 train_set = create_dataloader(X_train, y_train, **conf['model_parameter'], **conf['training_parameter'], shuffle=True)
+print(len(train_set))
+print(len(train_set.dataset.X))
 valid_set = create_dataloader(X_valid, y_valid, **conf['model_parameter'], **conf['training_parameter'], shuffle=False)
 test_set = create_dataloader(X_test, y_test, **conf['model_parameter'], **conf['training_parameter'], shuffle=False)
 

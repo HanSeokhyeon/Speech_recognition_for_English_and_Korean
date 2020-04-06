@@ -159,8 +159,6 @@ def preprocess_dataset(source_path):
             if total_frames > 784:
                 continue
 
-            X.append(X_val)
-
             y = np.loadtxt(txt_fname, dtype=str, encoding='cp949')
             if y.size > 1:
                 y_origin = " ".join(y)
@@ -173,6 +171,7 @@ def preprocess_dataset(source_path):
 
             add_y_label(y_remove)
 
+            X.append(X_val)
             Y.append(y_remove)
 
             i += 1
