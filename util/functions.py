@@ -94,7 +94,9 @@ def batch_iterator(batch_data, batch_label, model, optimizer, tf_rate, is_traini
     # Forwarding
     raw_pred_seq = model(batch_data, batch_label, tf_rate, is_training)
 
-    pred_y = (torch.cat([torch.unsqueeze(each_y,1) for each_y in raw_pred_seq],1)[:,:max_label_len,:]).contiguous()
+    pred_y = [torch.unsqueeze(each_y, 1) for each_y in raw_pred_seq]
+    pred_y = torch.cat(pred_y, 1)
+    pred_y = pred_y[:,:max_label_len,:].contiguous()
 
     if label_smoothing == 0.0 or not is_training:
         pred_y = pred_y.permute(0,2,1)#pred_y.contiguous().view(-1,output_class_dim)
