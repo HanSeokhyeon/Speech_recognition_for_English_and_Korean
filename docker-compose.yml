@@ -14,6 +14,6 @@ services:
     image: hsh0322/las-pytorch
     volumes:
       - ./:/opt/project
-    command: tensorboard --logdir=log/las_timit --port=6006 --host=0.0.0.0
     ports:
       - "6006:6006"
+    command: tensorboard --logdir=log/las_timit --port=6006 --host=0.0.0.0
