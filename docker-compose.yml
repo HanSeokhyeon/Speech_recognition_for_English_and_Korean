@@ -3,7 +3,6 @@ version: '3'
 services:
   train:
     image: hsh0322/las-pytorch
-    runtime: nvidia
     volumes:
       - ./:/opt/project
     command:
