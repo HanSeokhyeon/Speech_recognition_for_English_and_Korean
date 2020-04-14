@@ -20,6 +20,8 @@ data_type = 'float32'
 work_dir = os.getcwd()
 
 paths = sys.argv[1]
+
+# Train 3696 valid 400 test 192
 train_path	= np.loadtxt("timit_dataset_list/TRAIN_list.csv", dtype=str)
 valid_path	= np.loadtxt("timit_dataset_list/TEST_developmentset_list.csv", dtype=str)
 test_path	= np.loadtxt("timit_dataset_list/TEST_coreset_list.csv", dtype=str)
