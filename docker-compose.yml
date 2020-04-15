@@ -6,7 +6,6 @@ services:
     volumes:
       - ./:/opt/project
     command:
-#      nvidia-smi
        python3 train_timit.py config/las_timit_config.yaml
 
   tensorboard:
