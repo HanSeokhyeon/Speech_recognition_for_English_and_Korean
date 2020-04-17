@@ -7,7 +7,6 @@ import random; random.seed(int(timeit.default_timer()))
 from six.moves import cPickle
 import numpy as np
 import librosa
-import python_speech_features as features
 # a python package for speech features at https://github.com/jameslyons/python_speech_features
 
 if len(sys.argv) != 3:
@@ -68,8 +67,6 @@ def create_mfcc(filename):
 
 	rate, sample = 16000, np.fromfile(filename, dtype=np.int16)[512:]
 	sample = sample / 32767.5
-	# mfcc2 = features.mfcc(sample, rate, winlen=0.025, winstep=0.01, numcep=13, nfilt=26,
-	# 					 preemph=0.97, appendEnergy=True)
 	mfcc = librosa.feature.mfcc(sample,
 								sr=rate,
 								n_fft=400,
