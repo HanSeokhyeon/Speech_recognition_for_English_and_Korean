@@ -62,7 +62,7 @@ def get_delta(x, N):
     return delta
 
 
-def create_mfcc(filename):
+def create_spikegram(filename):
     """Perform standard preprocessing, as described by Alex Graves (2012)
 	http://www.cs.toronto.edu/~graves/preprint.pdf
 	Output consists of 12 MFCC and 1 energy, as well as the first derivative of these.
@@ -188,7 +188,7 @@ def preprocess_dataset(file_list):
 		total_duration = get_total_duration(phn_fname)
 		fr = open(phn_fname)
 
-		X_val, total_frames = create_mfcc(wav_fname)
+		X_val, total_frames = create_spikegram(wav_fname)
 		total_frames = int(total_frames)
 
 		X.append(X_val)
