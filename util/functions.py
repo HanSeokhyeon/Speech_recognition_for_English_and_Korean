@@ -69,7 +69,7 @@ def label_smoothing_loss(pred_y,true_y,label_smoothing=0.1):
     return loss
 
 
-def batch_iterator(batch_data, batch_label, listener, speller, optimizer, tf_rate, is_training, data='timit',**kwargs):
+def batch_iterator(batch_data, batch_label, model, optimizer, tf_rate, is_training, data='timit',**kwargs):
     bucketing = kwargs['bucketing']
     use_gpu = kwargs['use_gpu']
     output_class_dim = kwargs['output_class_dim']
@@ -90,12 +90,7 @@ def batch_iterator(batch_data, batch_label, listener, speller, optimizer, tf_rat
         batch_label = batch_label.cuda()
         criterion = criterion.cuda()
     # Forwarding
-    optimizer.zero_grad()
-    listner_feature = listener(batch_data)
-    if is_training:
-        raw_pred_seq, _ = speller(listner_feature,ground_truth=batch_label,teacher_force_rate=tf_rate)
-    else:
-        raw_pred_seq, _ = speller(listner_feature,ground_truth=None,teacher_force_rate=0)
+    raw_pred_seq = model(batch_data, batch_label, tf_rate, is_training)
 
     pred_y = (torch.cat([torch.unsqueeze(each_y,1) for each_y in raw_pred_seq],1)[:,:max_label_len,:]).contiguous()
 
