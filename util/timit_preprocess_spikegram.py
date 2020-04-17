@@ -27,6 +27,10 @@ valid_path	= np.loadtxt("timit_dataset_list/TEST_developmentset_list.csv", dtype
 test_path	= np.loadtxt("timit_dataset_list/TEST_coreset_list.csv", dtype=str)
 target_path	= os.path.join(paths, sys.argv[2])
 
+spike_frame = 2048 * 6
+n_band = 32
+n_time = 10
+n_structure = 4
 
 # 61 different phonemes
 phonemes = ["b", "bcl", "d", "dcl", "g", "gcl", "p", "pcl", "t", "tcl", "k", "kcl", "dx", "q", "jh", "ch", "s", "sh", "z", "zh",
@@ -59,26 +63,89 @@ def get_delta(x, N):
 
 
 def create_mfcc(filename):
-	"""Perform standard preprocessing, as described by Alex Graves (2012)
+    """Perform standard preprocessing, as described by Alex Graves (2012)
 	http://www.cs.toronto.edu/~graves/preprint.pdf
 	Output consists of 12 MFCC and 1 energy, as well as the first derivative of these.
 	[1 energy, 12 MFCC, 1 diff(energy), 12 diff(MFCC)
 	"""
 
-	rate, sample = 16000, np.fromfile(filename, dtype=np.int16)[512:]
-	sample = sample / 32767.5
-	mfcc = librosa.feature.mfcc(sample,
-								sr=rate,
-								n_fft=400,
-								hop_length=160,
-								n_mfcc=40,
-								center=False)
-	d_mfcc = get_delta(mfcc, 2)
-	a_mfcc = get_delta(d_mfcc, 2)
+    rate, spikegram = 16000, get_data(filename[:-4])
+    feature = make_feature(y=spikegram,
+                           frame=400,
+                           hop_length=160)
+    d_feature = get_delta(feature, 2)
+    a_feature = get_delta(d_feature, 2)
 
-	out = np.concatenate([mfcc.T, d_mfcc.T, a_mfcc.T], axis=1)
+    out = np.concatenate([feature.T, d_feature.T, a_feature.T], axis=1)
 
-	return out, out.shape[0]
+    return out, out.shape[0]
+
+
+def get_data(filename):
+    raw_filename = filename + "_spike.raw"
+    num_filename = filename + "_num.raw"
+
+    x = np.fromfile(raw_filename, dtype=np.float64)
+    x = np.reshape(x, (-1, n_structure))
+    num = np.fromfile(num_filename, dtype=np.int32)
+
+    n_data = np.shape(num)[0]
+    acc_num = [sum(num[:i]) for i in range(n_data + 1)]
+
+    for k in range(n_data):
+        x[acc_num[k]:acc_num[k + 1], 2] += k * spike_frame
+
+    spikegram = get_spikegram(x=x, num=num, acc_num=acc_num, n_data=n_data)
+
+    return spikegram
+
+
+def get_delay():
+    gammatone_filter = np.fromfile("timit_dataset_list/Gammatone_Filter_Order4.raw", dtype=np.float64)
+    gammatone_filter = np.reshape(gammatone_filter, (n_band, -1))
+    gammatone_filter = gammatone_filter[:, 1:-1]
+
+    max_point = np.argmax(np.abs(gammatone_filter), axis=1)
+
+    return max_point
+
+
+max_point = get_delay()
+
+
+def get_spikegram(x, num, acc_num, n_data):
+    # get spikegram_old by SNR
+    spikegram = np.zeros((n_band, spike_frame * n_data))
+    for k in range(n_data):
+        for n in range(num[k]):
+            spikegram[int(x[acc_num[k] + n, 0])][int(x[acc_num[k] + n, 2])] \
+                += np.abs(x[acc_num[k] + n, 1])
+
+    for idx, point in enumerate(max_point):
+        spikegram[idx, point:] = spikegram[idx, :-point]
+
+    return spikegram
+
+
+def make_feature(y, frame, hop_length):
+    feature = []
+    feature_tmp = np.zeros(n_band+n_time)
+    num_of_frame = int((y.shape[1] - frame) / hop_length + 1)
+    start, end = 0, frame
+
+    if y.shape[1] % frame != 0:
+        y = np.pad(y, ((0, 0), (0, frame - y.shape[1] % frame)), 'constant', constant_values=0)
+
+    for i in range(num_of_frame):
+        feature_tmp[:n_band] = librosa.power_to_db(np.sum(y[:, start:end], axis=1)+1)
+        tmp_sum = np.reshape(np.sum(y[:, start:end], axis=0), (n_time, -1))
+        feature_tmp[n_band:] = librosa.power_to_db(np.sum(tmp_sum, axis=1)+1)
+        start += hop_length
+        end += hop_length
+        feature.append(np.copy(feature_tmp.reshape(1, -1)))
+
+    feature = np.concatenate(feature, axis=0).transpose()
+    return feature
 
 
 def calc_norm_param(X):
