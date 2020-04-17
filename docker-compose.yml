@@ -6,7 +6,7 @@ services:
     volumes:
       - ./:/opt/project
     command:
-       python3 train_timit.py config/las_timit_mfcc_120_config.yaml
+       python3 train_timit.py config/las_timit_spikegram_126_config.yaml
 
   tensorboard:
     image: hsh0322/las-pytorch
