@@ -233,7 +233,7 @@ print('Preprocessing test data...')
 X_test, y_test = preprocess_dataset(test_path)
 max_length3 = max(X_test, key=lambda x: np.shape(x))[0]
 print('Preprocessing completed.')
-max_length = max(max_length1, max_length2, max_length3)
+max_length = max([max_length1, max_length2, max_length3])
 print("{} {} {} {}".format(max_length1, max_length2, max_length3, max_length))
 
 print()
