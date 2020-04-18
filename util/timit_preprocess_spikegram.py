@@ -225,11 +225,16 @@ print()
 
 print('Preprocessing train data...')
 X_train, y_train = preprocess_dataset(train_path)
+max_length1 = max(X_train, key=lambda x: np.shape(x))[0]
 print('Preprocessing valid data...')
 X_valid, y_valid = preprocess_dataset(valid_path)
+max_length2 = max(X_valid, key=lambda x: np.shape(x))[0]
 print('Preprocessing test data...')
 X_test, y_test = preprocess_dataset(test_path)
+max_length3 = max(X_test, key=lambda x: np.shape(x))[0]
 print('Preprocessing completed.')
+max_length = max(max_length1, max_length2, max_length3)
+print("{} {} {} {}".format(max_length1, max_length2, max_length3, max_length))
 
 print()
 print('Collected {} training instances (should be 3696 in complete TIMIT )'.format(len(X_train)))
