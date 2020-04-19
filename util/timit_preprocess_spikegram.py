@@ -197,7 +197,7 @@ def preprocess_dataset(file_list):
 
         y_val = np.zeros(total_frames) - 1
         start_ind = 0
-        for i, line in enumerate(fr):
+        for j, line in enumerate(fr):
             [start_time, end_time, phoneme] = line.rstrip('\n').split()
             start_time = int(start_time)
             end_time = int(end_time)
@@ -210,7 +210,7 @@ def preprocess_dataset(file_list):
         fr.close()
 
         global i_max
-        i_max = max(i, i_max)
+        i_max = max(j, i_max)
 
         if -1 in y_val:
             print('WARNING: -1 detected in TARGET')
