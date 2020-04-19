@@ -10,7 +10,7 @@ import librosa
 # a python package for speech features at https://github.com/jameslyons/python_speech_features
 
 if len(sys.argv) != 3:
-	print('Usage: python3 preprocess.py <timit directory> <output_file>')
+    print('Usage: python3 preprocess.py <timit directory> <output_file>')
 
 ##### SCRIPT META VARIABLES #####
 phn_file_postfix = '.PHN'
@@ -34,18 +34,20 @@ n_structure = 4
 
 # 61 different phonemes
 phonemes = ["b", "bcl", "d", "dcl", "g", "gcl", "p", "pcl", "t", "tcl", "k", "kcl", "dx", "q", "jh", "ch", "s", "sh", "z", "zh",
-	"f", "th", "v", "dh", "m", "n", "ng", "em", "en", "eng", "nx", "l", "r", "w", "y",
-	"hh", "hv", "el", "iy", "ih", "eh", "ey", "ae", "aa", "aw", "ay", "ah", "ao", "oy",
-	"ow", "uh", "uw", "ux", "er", "ax", "ix", "axr", "ax-h", "pau", "epi", "h#"]
+    "f", "th", "v", "dh", "m", "n", "ng", "em", "en", "eng", "nx", "l", "r", "w", "y",
+    "hh", "hv", "el", "iy", "ih", "eh", "ey", "ae", "aa", "aw", "ay", "ah", "ao", "oy",
+    "ow", "uh", "uw", "ux", "er", "ax", "ix", "axr", "ax-h", "pau", "epi", "h#"]
 
 phonemes2index = {k:v for v,k in enumerate(phonemes)}
 
+i_max = 0
+
 
 def get_total_duration(file):
-	"""Get the length of the phoneme file, i.e. the 'time stamp' of the last phoneme"""
-	for line in reversed(list(open(file))):
-		[_, val, _] = line.split()
-		return int(val)
+    """Get the length of the phoneme file, i.e. the 'time stamp' of the last phoneme"""
+    for line in reversed(list(open(file))):
+        [_, val, _] = line.split()
+        return int(val)
 
 
 def get_delta(x, N):
@@ -64,10 +66,10 @@ def get_delta(x, N):
 
 def create_spikegram(filename):
     """Perform standard preprocessing, as described by Alex Graves (2012)
-	http://www.cs.toronto.edu/~graves/preprint.pdf
-	Output consists of 12 MFCC and 1 energy, as well as the first derivative of these.
-	[1 energy, 12 MFCC, 1 diff(energy), 12 diff(MFCC)
-	"""
+    http://www.cs.toronto.edu/~graves/preprint.pdf
+    Output consists of 12 MFCC and 1 energy, as well as the first derivative of these.
+    [1 energy, 12 MFCC, 1 diff(energy), 12 diff(MFCC)
+    """
 
     rate, spikegram = 16000, get_data(filename[:-4])
     feature = make_feature(y=spikegram,
@@ -149,75 +151,78 @@ def make_feature(y, frame, hop_length):
 
 
 def calc_norm_param(X):
-	"""Assumes X to be a list of arrays (of differing sizes)"""
-	total_len = 0
-	mean_val = np.zeros(X[0].shape[1]) # 39
-	std_val = np.zeros(X[0].shape[1]) # 39
-	for obs in X:
-		obs_len = obs.shape[0]
-		mean_val += np.mean(obs,axis=0) * obs_len
-		std_val += np.std(obs, axis=0) * obs_len
-		total_len += obs_len
+    """Assumes X to be a list of arrays (of differing sizes)"""
+    total_len = 0
+    mean_val = np.zeros(X[0].shape[1]) # 39
+    std_val = np.zeros(X[0].shape[1]) # 39
+    for obs in X:
+        obs_len = obs.shape[0]
+        mean_val += np.mean(obs,axis=0) * obs_len
+        std_val += np.std(obs, axis=0) * obs_len
+        total_len += obs_len
 
-	mean_val /= total_len
-	std_val /= total_len
+    mean_val /= total_len
+    std_val /= total_len
 
-	return mean_val, std_val, total_len
+    return mean_val, std_val, total_len
 
 def normalize(X, mean_val, std_val):
-	for i in range(len(X)):
-		X[i] = (X[i] - mean_val)/std_val
-	return X
+    for i in range(len(X)):
+        X[i] = (X[i] - mean_val)/std_val
+    return X
 
 def set_type(X, type):
-	for i in range(len(X)):
-		X[i] = X[i].astype(type)
-	return X
+    for i in range(len(X)):
+        X[i] = X[i].astype(type)
+    return X
 
 
 def preprocess_dataset(file_list):
-	"""Preprocess data, ignoring compressed files and files starting with 'SA'"""
-	i = 0
-	X = []
-	Y = []
+    """Preprocess data, ignoring compressed files and files starting with 'SA'"""
+    i = 0
+    X = []
+    Y = []
 
-	for fname in file_list:
-		phn_fname = "{}/{}{}".format(paths, fname, phn_file_postfix)
-		wav_fname = "{}/{}{}".format(paths, fname, wav_file_postfix)
+    for fname in file_list:
+        phn_fname = "{}/{}{}".format(paths, fname, phn_file_postfix)
+        wav_fname = "{}/{}{}".format(paths, fname, wav_file_postfix)
 
-		total_duration = get_total_duration(phn_fname)
-		fr = open(phn_fname)
+        total_duration = get_total_duration(phn_fname)
+        fr = open(phn_fname)
 
-		X_val, total_frames = create_spikegram(wav_fname)
-		total_frames = int(total_frames)
+        X_val, total_frames = create_spikegram(wav_fname)
+        total_frames = int(total_frames)
 
-		X.append(X_val)
+        X.append(X_val)
 
-		y_val = np.zeros(total_frames) - 1
-		start_ind = 0
-		for line in fr:
-			[start_time, end_time, phoneme] = line.rstrip('\n').split()
-			start_time = int(start_time)
-			end_time = int(end_time)
+        y_val = np.zeros(total_frames) - 1
+        start_ind = 0
+        for i, line in enumerate(fr):
+            [start_time, end_time, phoneme] = line.rstrip('\n').split()
+            start_time = int(start_time)
+            end_time = int(end_time)
 
-			phoneme_num = phonemes2index[phoneme] if phoneme in phonemes2index else -1
-			end_ind = int(np.round((end_time) / total_duration * total_frames))
-			y_val[start_ind:end_ind] = phoneme_num
+            phoneme_num = phonemes2index[phoneme] if phoneme in phonemes2index else -1
+            end_ind = int(np.round((end_time) / total_duration * total_frames))
+            y_val[start_ind:end_ind] = phoneme_num
 
-			start_ind = end_ind
-		fr.close()
+            start_ind = end_ind
+        fr.close()
 
-		if -1 in y_val:
-			print('WARNING: -1 detected in TARGET')
-			print(y_val)
+        global i_max
+        i_max = max(i, i_max)
 
-		Y.append(y_val.astype('int32'))
+        if -1 in y_val:
+            print('WARNING: -1 detected in TARGET')
+            print(y_val)
 
-		i += 1
-		print('file No.', i, end='\r', flush=True)
+        Y.append(y_val.astype('int32'))
 
-	print('Done')
-	return X, Y
+        i += 1
+        print('file No.', i, end='\r', flush=True)
+
+    print('Done')
+    return X, Y
 
 
 ##### PREPROCESSING #####
@@ -235,6 +240,7 @@ max_length3 = np.shape(max(X_test, key=lambda x: np.shape(x)))[0]
 print('Preprocessing completed.')
 max_length = max(max_length1, max_length2, max_length3)
 print("{} {} {} {}".format(max_length1, max_length2, max_length3, max_length))
+print(i_max)
 
 print()
 print('Collected {} training instances (should be 3696 in complete TIMIT )'.format(len(X_train)))
