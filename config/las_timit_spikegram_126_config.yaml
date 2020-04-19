@@ -6,7 +6,7 @@ meta_variable:
 
 model_parameter:
   max_timestep: 768                           # max_timestep%8 == 0 is required due to listener time resolution reduction
-  max_label_len: 77                           # 
+  max_label_len: 74                           #
   input_feature_dim: 126                       #
   listener_hidden_dim: 256                    # Default listener LSTM output dimension from LAS paper
   listener_layer: 2                           # Number of layers in listener, the paper is using 3
