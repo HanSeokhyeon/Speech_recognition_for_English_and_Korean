@@ -143,20 +143,20 @@ class Speller(nn.Module):
                 # Case 1. Pick character with max probability
                 elif self.decode_mode == 1:
                     output_word = torch.zeros_like(raw_pred)
-                    for idx,i in enumerate(raw_pred.topk(1)[1]):
-                        output_word[idx,int(i)] = 1
+                    for idx, i in enumerate(raw_pred.max(dim=1)[1]):
+                        output_word[idx, int(i)] = 1
                     output_word = output_word.unsqueeze(1)             
                 # Case 2. Sample categotical label from raw prediction
                 else:
                     sampled_word = Categorical(raw_pred).sample()
                     output_word = torch.zeros_like(raw_pred)
-                    for idx,i in enumerate(sampled_word):
-                        output_word[idx,int(i)] = 1
+                    for idx, i in enumerate(sampled_word):
+                        output_word[idx, int(i)] = 1
                     output_word = output_word.unsqueeze(1)
                 
-            rnn_input = torch.cat([output_word,context.unsqueeze(1)],dim=-1)
+            rnn_input = torch.cat([output_word, context.unsqueeze(1)],dim=-1)
 
-        return raw_pred_seq,attention_record
+        return raw_pred_seq, attention_record
 
 
 # Attention mechanism
