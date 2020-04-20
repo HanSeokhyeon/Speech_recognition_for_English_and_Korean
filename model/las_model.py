@@ -143,7 +143,7 @@ class Speller(nn.Module):
                 # Case 1. Pick character with max probability
                 elif self.decode_mode == 1:
                     output_word = torch.zeros_like(raw_pred)
-                    for idx, i in enumerate(raw_pred.max(dim=1)[1]):
+                    for idx, i in enumerate(raw_pred.argmax(dim=1)):
                         output_word[idx, int(i)] = 1
                     output_word = output_word.unsqueeze(1)             
                 # Case 2. Sample categotical label from raw prediction
