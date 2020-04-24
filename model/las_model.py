@@ -18,13 +18,9 @@ class LAS(nn.Module):
         self.listener = listener
         self.speller = speller
 
-    def forward(self, batch_data, batch_label, tf_rate, is_training):
+    def forward(self, batch_data, batch_label, tf_rate, ground_truth):
         listner_feature = self.listener(batch_data)
-        if is_training:
-            raw_pred_seq, _ = self.speller(listner_feature, ground_truth=batch_label, teacher_force_rate=tf_rate)
-        else:
-            raw_pred_seq, _ = self.speller(listner_feature, ground_truth=None, teacher_force_rate=0)
-
+        raw_pred_seq, _ = self.speller(listner_feature, ground_truth=ground_truth, teacher_force_rate=tf_rate)
         return raw_pred_seq
 
 

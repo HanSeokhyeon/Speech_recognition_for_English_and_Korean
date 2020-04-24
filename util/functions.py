@@ -3,6 +3,7 @@ import torch.nn as nn
 from torch.autograd import Variable  
 import numpy as np
 import editdistance as ed
+import time
 
 # CreateOnehotVariable function
 # *** DEV NOTE : This is a workaround to achieve one, I'm not sure how this function affects the training speed ***
@@ -124,6 +125,133 @@ def batch_iterator(batch_data, batch_label, model, optimizer, tf_rate, is_traini
     batch_loss = loss.cpu().data.numpy()
 
     return batch_loss, batch_ler
+
+
+def train(train_set, model, optimizer, tf_rate, conf, global_step, log_writer, data='timit'):
+    bucketing = conf['model_parameter']['bucketing']
+    use_gpu = conf['model_parameter']['use_gpu']
+    label_smoothing = conf['model_parameter']['label_smoothing']
+
+    verbose_step = conf['training_parameter']['verbose_step']
+
+    model.train()
+
+    # Training
+    for batch_index, (batch_data, batch_label) in enumerate(train_set):
+        if bucketing:
+            batch_data = batch_data.squeeze(dim=0)
+            batch_label = batch_data.squeeze(dim=0)
+        max_label_len = min([batch_label.size()[1], conf['model_parameter']['max_label_len']])
+
+        batch_data = Variable(batch_data).type(torch.FloatTensor)
+        batch_label = Variable(batch_label, requires_grad=False)
+        criterion = nn.NLLLoss(ignore_index=0)
+        if use_gpu:
+            batch_data = batch_data.cuda()
+            batch_label = batch_label.cuda()
+            criterion = criterion.cuda()
+
+        optimizer.zero_grad()
+
+        raw_pred_seq = model(batch_data, batch_label, tf_rate, batch_label)
+
+        pred_y = (torch.cat([torch.unsqueeze(each_y, 1) for each_y in raw_pred_seq], 1)[:, :max_label_len, :]).contiguous()
+
+        if label_smoothing == 0.0:
+            pred_y = pred_y.permute(0, 2, 1)  # pred_y.contiguous().view(-1,output_class_dim)
+            true_y = torch.max(batch_label, dim=2)[1][:, :max_label_len].contiguous()  # .view(-1)
+
+            loss = criterion(pred_y, true_y)
+            # variable -> numpy before sending into LER calculator
+            batch_ler = LetterErrorRate(torch.max(pred_y.permute(0, 2, 1), dim=2)[1].cpu().numpy(),
+                                        # .reshape(current_batch_size,max_label_len),
+                                        true_y.cpu().data.numpy(),
+                                        data)  # .reshape(current_batch_size,max_label_len), data)
+
+        else:
+            true_y = batch_label[:, :max_label_len, :].contiguous()
+            true_y = true_y.type(torch.cuda.FloatTensor) if use_gpu else true_y.type(torch.FloatTensor)
+            loss = label_smoothing_loss(pred_y, true_y, label_smoothing=label_smoothing)
+            batch_ler = LetterErrorRate(torch.max(pred_y, dim=2)[1].cpu().numpy(),
+                                        # .reshape(current_batch_size,max_label_len),
+                                        torch.max(true_y, dim=2)[1].cpu().data.numpy(),
+                                        data)  # .reshape(current_batch_size,max_label_len), data)
+
+        loss.backward()
+        optimizer.step()
+
+        batch_loss = loss.cpu().data.numpy()
+
+        global_step += 1
+
+        if global_step % verbose_step == 0:
+            log_writer.add_scalars('loss', {'train': batch_loss}, global_step)
+            log_writer.add_scalars('cer', {'train': np.array([np.array(batch_ler).mean()])}, global_step)
+
+    return global_step
+
+
+def evaluate(evaluate_set, model, tf_rate, conf, global_step, log_writer, epoch_begin, train_begin, logger, epoch, is_valid, data='timit'):
+    bucketing = conf['model_parameter']['bucketing']
+    use_gpu = conf['model_parameter']['use_gpu']
+
+    model.eval()
+
+    # Validation
+    eval_loss = []
+    eval_ler = []
+
+    with torch.no_grad():
+        for _, (batch_data, batch_label) in enumerate(evaluate_set):
+            if bucketing:
+                batch_data = batch_data.squeeze(dim=0)
+                batch_label = batch_data.squeeze(dim=0)
+            max_label_len = min([batch_label.size()[1], conf['model_parameter']['max_label_len']])
+
+            batch_data = Variable(batch_data).type(torch.FloatTensor)
+            batch_label = Variable(batch_label, requires_grad=False)
+            criterion = nn.NLLLoss(ignore_index=0)
+            if use_gpu:
+                batch_data = batch_data.cuda()
+                batch_label = batch_label.cuda()
+                criterion = criterion.cuda()
+
+            raw_pred_seq = model(batch_data, batch_label, 0, None)
+
+            pred_y = (torch.cat([torch.unsqueeze(each_y, 1) for each_y in raw_pred_seq], 1)[:, :max_label_len, :]).contiguous()
+
+            pred_y = pred_y.permute(0, 2, 1)  # pred_y.contiguous().view(-1,output_class_dim)
+            true_y = torch.max(batch_label, dim=2)[1][:, :max_label_len].contiguous()  # .view(-1)
+
+            loss = criterion(pred_y, true_y)
+            # variable -> numpy before sending into LER calculator
+            batch_ler = LetterErrorRate(torch.max(pred_y.permute(0, 2, 1), dim=2)[1].cpu().numpy(),
+                                        # .reshape(current_batch_size,max_label_len),
+                                        true_y.cpu().data.numpy(),
+                                        data)  # .reshape(current_batch_size,max_label_len), data)
+
+            batch_loss = loss.cpu().data.numpy()
+
+            eval_loss.append(batch_loss)
+            eval_ler.extend(batch_ler)
+
+    now_loss, now_cer = np.array([sum(eval_loss) / len(eval_loss)]), np.mean(eval_ler)
+    if is_valid:
+        log_writer.add_scalars('loss', {'dev': now_loss}, global_step)
+        log_writer.add_scalars('cer', {'dev': now_cer}, global_step)
+    else:
+        log_writer.add_scalars('loss', {'test': now_loss}, global_step)
+        log_writer.add_scalars('cer', {'test': now_cer}, global_step)
+
+    current = time.time()
+    epoch_elapsed = (current - epoch_begin) / 60.0
+    train_elapsed = (current - train_begin) / 3600.0
+
+    logger.info("epoch: {}, global step: {:6d}, loss: {:.4f}, cer: {:.4f}, elapsed: {:.2f}m {:.2f}h"
+                .format(epoch, global_step, float(now_loss), float(now_cer), epoch_elapsed, train_elapsed))
+
+    return now_cer
+
 
 def log_parser(log_file_path):
     tr_loss,tt_loss,tr_ler,tt_ler = [], [], [], []

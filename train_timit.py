@@ -1,12 +1,8 @@
 import yaml
 from util.timit_dataset import load_dataset, create_dataloader
 from model.las_model import LAS, Listener, Speller
-from util.functions import batch_iterator
-import numpy as np
-from torch.autograd import Variable
+from util.functions import train, evaluate
 import torch
-import torch.nn as nn
-import sys
 from tensorboardX import SummaryWriter
 import argparse
 from logger import *
@@ -26,8 +22,7 @@ if not torch.cuda.is_available():
 torch.manual_seed(conf['training_parameter']['seed'])
 total_epochs = conf['training_parameter']['total_epochs']
 use_pretrained = conf['training_parameter']['use_pretrained']
-verbose_step = conf['training_parameter']['verbose_step']
-valid_step  = conf['training_parameter']['valid_step']
+valid_step = conf['training_parameter']['valid_step']
 tf_rate_upperbound = conf['training_parameter']['tf_rate_upperbound']
 tf_rate_lowerbound = conf['training_parameter']['tf_rate_lowerbound']
 
@@ -71,58 +66,9 @@ for epoch in range(total_epochs):
 
     epoch_begin = time.time()
 
-    # Training
-    for batch_index,(batch_data,batch_label) in enumerate(train_set):
-        batch_loss, batch_ler = batch_iterator(batch_data, batch_label, model, optimizer,
-                                               tf_rate, is_training=True, **conf['model_parameter'])
-
-        global_step += 1
-
-        if global_step % verbose_step == 0:
-            log_writer.add_scalars('loss',{'train':batch_loss}, global_step)
-            log_writer.add_scalars('cer',{'train':np.array([np.array(batch_ler).mean()])}, global_step)
-
-    # Validation
-    dev_loss = []
-    dev_ler = []
-    for _,(batch_data,batch_label) in enumerate(valid_set):
-        batch_loss, batch_ler = batch_iterator(batch_data, batch_label, model, optimizer,
-                                               tf_rate, is_training=False, **conf['model_parameter'])
-        dev_loss.append(batch_loss)
-        dev_ler.extend(batch_ler)
-
-    now_loss, now_cer = np.array([sum(dev_loss)/len(dev_loss)]), np.mean(dev_ler)
-    log_writer.add_scalars('loss',{'dev':now_loss}, global_step)
-    log_writer.add_scalars('cer',{'dev':now_cer}, global_step)
-
-    current = time.time()
-    epoch_elapsed = (current - epoch_begin) / 60.0
-    train_elapsed = (current - train_begin) / 3600.0
-
-    logger.info("epoch: {}, global step: {:6d}, loss: {:.4f}, cer: {:.4f}, elapsed: {:.2f}m {:.2f}h"
-                .format(epoch, global_step, float(now_loss), float(now_cer), epoch_elapsed, train_elapsed))
-
-    # Test
-    test_begin = time.time()
-
-    test_loss = []
-    test_ler = []
-    for _, (batch_data, batch_label) in enumerate(test_set):
-        batch_loss, batch_ler = batch_iterator(batch_data, batch_label, model, optimizer,
-                                               tf_rate_lowerbound, is_training=False, **conf['model_parameter'])
-        test_loss.append(batch_loss)
-        test_ler.extend(batch_ler)
-
-    now_loss, now_cer = np.array([sum(test_loss) / len(test_loss)]), np.mean(test_ler)
-    log_writer.add_scalars('loss', {'test': now_loss}, global_step)
-    log_writer.add_scalars('cer', {'test': now_cer}, global_step)
-
-    current = time.time()
-    epoch_elapsed = (current - test_begin) / 60.0
-    train_elapsed = (current - train_begin) / 3600.0
-
-    logger.info("test mode, loss: {:.4f}, cer: {:.4f}, elapsed: {:.2f}m {:.2f}h"
-                .format(float(now_loss), float(now_cer), epoch_elapsed, train_elapsed))
+    global_step = train(train_set, model, optimizer, tf_rate, conf, global_step, log_writer)
+    now_cer = evaluate(valid_set, model, tf_rate, conf, global_step, log_writer, epoch_begin, train_begin, logger, epoch, True)
+    _ = evaluate(test_set, model, tf_rate, conf, global_step, log_writer, epoch_begin, train_begin, logger, epoch, False)
 
     """
     # Generate Attention map
