@@ -89,6 +89,13 @@ def batch_iterator(batch_data, batch_label, model, optimizer, tf_rate, is_traini
         batch_data = batch_data.cuda()
         batch_label = batch_label.cuda()
         criterion = criterion.cuda()
+
+    optimizer.zero_grad()
+    if is_training:
+        model.train()
+    else:
+        model.eval()
+
     # Forwarding
     raw_pred_seq = model(batch_data, batch_label, tf_rate, is_training)
 

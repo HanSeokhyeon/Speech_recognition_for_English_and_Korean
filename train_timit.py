@@ -102,6 +102,27 @@ for epoch in range(total_epochs):
     logger.info("epoch: {}, global step: {:6d}, loss: {:.4f}, cer: {:.4f}, elapsed: {:.2f}m {:.2f}h"
                 .format(epoch, global_step, float(now_loss), float(now_cer), epoch_elapsed, train_elapsed))
 
+    # Test
+    test_begin = time.time()
+
+    test_loss = []
+    test_ler = []
+    for _, (batch_data, batch_label) in enumerate(test_set):
+        batch_loss, batch_ler = batch_iterator(batch_data, batch_label, model, optimizer,
+                                               tf_rate_lowerbound, is_training=False, **conf['model_parameter'])
+        test_loss.append(batch_loss)
+        test_ler.extend(batch_ler)
+
+    now_loss, now_cer = np.array([sum(test_loss) / len(test_loss)]), np.mean(test_ler)
+    log_writer.add_scalars('loss', {'test': now_loss}, global_step)
+    log_writer.add_scalars('cer', {'test': now_cer}, global_step)
+
+    current = time.time()
+    epoch_elapsed = (current - test_begin) / 60.0
+    train_elapsed = (current - train_begin) / 3600.0
+
+    logger.info("test mode, loss: {:.4f}, cer: {:.4f}, elapsed: {:.2f}m {:.2f}h"
+                .format(float(now_loss), float(now_cer), epoch_elapsed, train_elapsed))
 
     """
     # Generate Attention map
@@ -142,24 +163,4 @@ for epoch in range(total_epochs):
 model.load_state_dict(torch.load(model_path))
 model.eval()
 
-# Test
-test_begin = time.time()
 
-test_loss = []
-test_ler = []
-for _, (batch_data, batch_label) in enumerate(test_set):
-    batch_loss, batch_ler = batch_iterator(batch_data, batch_label, model, optimizer,
-                                               tf_rate_lowerbound, is_training=False, **conf['model_parameter'])
-    test_loss.append(batch_loss)
-    test_ler.extend(batch_ler)
-
-now_loss, now_cer = np.array([sum(test_loss) / len(test_loss)]), np.mean(test_ler)
-log_writer.add_scalars('loss', {'test': now_loss}, global_step)
-log_writer.add_scalars('cer', {'test': now_cer}, global_step)
-
-current = time.time()
-epoch_elapsed = (current - test_begin) / 60.0
-train_elapsed = (current - train_begin) / 3600.0
-
-logger.info("test mode, loss: {:.4f}, cer: {:.4f}, elapsed: {:.2f}m {:.2f}h"
-            .format(float(now_loss), float(now_cer), epoch_elapsed, train_elapsed))
