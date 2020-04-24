@@ -68,7 +68,6 @@ for epoch in range(total_epochs):
 
     global_step = train(train_set, model, optimizer, tf_rate, conf, global_step, log_writer)
     now_cer = evaluate(valid_set, model, tf_rate, conf, global_step, log_writer, epoch_begin, train_begin, logger, epoch, True)
-    _ = evaluate(test_set, model, tf_rate, conf, global_step, log_writer, epoch_begin, train_begin, logger, epoch, False)
 
     """
     # Generate Attention map
@@ -109,4 +108,5 @@ for epoch in range(total_epochs):
 model.load_state_dict(torch.load(model_path))
 model.eval()
 
-
+test_cer = evaluate(test_set, model, tf_rate, conf, global_step, log_writer, epoch_begin, train_begin, logger, epoch, False)
+print(test_cer)
