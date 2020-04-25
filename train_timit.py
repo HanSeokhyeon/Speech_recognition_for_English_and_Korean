@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser(description='Training script for LAS on TIMIT .
 parser.add_argument('config_path', metavar='config_path', type=str, help='Path to config file for training.')
 paras = parser.parse_args()
 config_path = paras.config_path
-conf = yaml.load(open(config_path,'r'))
+conf = yaml.load(open(config_path, 'r'))
 device = 'cuda'
 if not torch.cuda.is_available():
     conf['model_parameter']['use_gpu'] = False
@@ -48,7 +48,7 @@ model = LAS(listener, speller)
 # model = nn.DataParallel(model)
 model.to(device)
 
-optimizer = torch.optim.Adam([{'params':listener.parameters()}, {'params':speller.parameters()}],
+optimizer = torch.optim.Adam([{'params': listener.parameters()}, {'params': speller.parameters()}],
                              lr=conf['training_parameter']['learning_rate'])
 model_path = "{}{}.pt".format(conf['meta_variable']['checkpoint_dir'], conf['meta_variable']['experiment_name'])
 
