@@ -3,6 +3,7 @@ from util.timit_dataset import load_dataset, create_dataloader
 from model.las_model import LAS, Listener, Speller
 from util.functions import train, evaluate
 import torch
+import torch.nn as nn
 from tensorboardX import SummaryWriter
 import argparse
 from logger import *

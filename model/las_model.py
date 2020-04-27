@@ -29,15 +29,16 @@ class LAS(nn.Module):
 # Step 2. Run through BLSTM
 # Note the input should have timestep%2 == 0
 class pBLSTMLayer(nn.Module):
-    def __init__(self,input_feature_dim,hidden_dim,rnn_unit='LSTM',dropout_rate=0.0):
+    def __init__(self, input_feature_dim, hidden_dim, rnn_unit='LSTM', dropout_rate=0.0):
         super(pBLSTMLayer, self).__init__()
-        self.rnn_unit = getattr(nn,rnn_unit.upper())
+        self.rnn_unit = getattr(nn, rnn_unit.upper())
 
         # feature dimension will be doubled since time resolution reduction
         self.BLSTM = self.rnn_unit(input_feature_dim*2,hidden_dim,1, bidirectional=True, 
                                    dropout=dropout_rate,batch_first=True)
     
-    def forward(self,input_x):
+    def forward(self, input_x):
+        self.BLSTM.flatten_parameters()
         batch_size = input_x.size(0)
         timestep = input_x.size(1)
         feature_dim = input_x.size(2)
@@ -65,8 +66,8 @@ class Listener(nn.Module):
         if self.use_gpu:
             self = self.cuda()
 
-    def forward(self,input_x):
-        output,_  = self.pLSTM_layer0(input_x)
+    def forward(self, input_x):
+        output, _ = self.pLSTM_layer0(input_x)
         for i in range(1,self.listener_layer):
             output, _ = getattr(self,'pLSTM_layer'+str(i))(output)
         
@@ -103,7 +104,8 @@ class Speller(nn.Module):
 
         return raw_pred, hidden_state, context, attention_score
 
-    def forward(self, listener_feature, ground_truth=None, teacher_force_rate = 0.9):
+    def forward(self, listener_feature, ground_truth=None, teacher_force_rate=0.9):
+        self.rnn_layer.flatten_parameters()
         if ground_truth is None:
             teacher_force_rate = 0
         teacher_force = True if np.random.random_sample() < teacher_force_rate else False
