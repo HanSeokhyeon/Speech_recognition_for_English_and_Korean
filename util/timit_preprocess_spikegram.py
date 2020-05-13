@@ -84,9 +84,11 @@ def create_spikegram(filename):
 
 
 def get_data(filename):
+    wav_filename = filename.replace("TIMIT_spikegram", "TIMIT") + wav_file_postfix
     raw_filename = filename + "_spike.raw"
     num_filename = filename + "_num.raw"
 
+    wav = np.fromfile(wav_filename, dtype=np.int16)[512:]
     x = np.fromfile(raw_filename, dtype=np.float64)
     x = np.reshape(x, (-1, n_structure))
     num = np.fromfile(num_filename, dtype=np.int32)
@@ -98,6 +100,7 @@ def get_data(filename):
         x[acc_num[k]:acc_num[k + 1], 2] += k * spike_frame
 
     spikegram = get_spikegram(x=x, num=num, acc_num=acc_num, n_data=n_data)
+    spikegram = spikegram[:, :wav.shape[0]]
 
     return spikegram
 
