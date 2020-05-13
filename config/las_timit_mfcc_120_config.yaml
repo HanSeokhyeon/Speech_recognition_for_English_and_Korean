@@ -26,10 +26,10 @@ model_parameter:
 
 
 training_parameter:
-  learning_rate: 0.0002
+  learning_rate: 0.0001
   seed: 1
   total_epochs: 200
-  batch_size: 8
+  batch_size: 4
   tf_rate_upperbound: 0.8                     # teacher forcing rate during training will be linearly
   tf_rate_lowerbound: 0.0                     # decayinn from upperbound to lower bound for each epoch
   verbose_step: 5                             # Show progress every verbose_step
