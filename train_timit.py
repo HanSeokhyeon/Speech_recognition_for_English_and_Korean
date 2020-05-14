@@ -46,7 +46,7 @@ else:
     speller = torch.load(conf['training_parameter']['pretrained_speller_path'])
 
 model = LAS(listener, speller)
-model = nn.DataParallel(model)
+# model = nn.DataParallel(model)
 model.to(device)
 
 optimizer = torch.optim.Adam([{'params': listener.parameters()}, {'params': speller.parameters()}],
