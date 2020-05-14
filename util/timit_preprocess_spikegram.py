@@ -20,6 +20,7 @@ data_type = 'float32'
 work_dir = os.getcwd()
 
 paths = sys.argv[1]
+last_paths = paths.split('/')[-1]
 
 # Train 3696 valid 400 test 192
 train_path	= np.loadtxt("timit_dataset_list/TRAIN_list.csv", dtype=str)
@@ -84,7 +85,7 @@ def create_spikegram(filename):
 
 
 def get_data(filename):
-    wav_filename = filename.replace("TIMIT_spikegram", "TIMIT") + wav_file_postfix
+    wav_filename = filename.replace(last_paths, "TIMIT") + wav_file_postfix
     raw_filename = filename + "_spike.raw"
     num_filename = filename + "_num.raw"
 
