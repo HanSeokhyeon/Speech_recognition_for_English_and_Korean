@@ -111,3 +111,4 @@ model.eval()
 
 test_cer = evaluate(test_set, model, tf_rate, conf, global_step, log_writer, epoch_begin, train_begin, logger, epoch, False)
 print(test_cer)
+logger.info("test result, cer: {:.4f}".format(float(test_cer)))
