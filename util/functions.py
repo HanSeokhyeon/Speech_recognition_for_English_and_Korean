@@ -223,7 +223,7 @@ def collapse_phn(seq, return_phn = False, drop_q = True):
     if return_phn:
         return seq
 
-    # Transfer back into index seqence for Evaluation
+    # Transfer back into index sequence for Evaluation
     seq = [phonemes2index[phn] for phn in seq]
 
     return seq
