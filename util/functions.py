@@ -7,11 +7,11 @@ import time
 
 
 # letter_error_rate function
-# Merge the repeated prediction and calculate editdistance of prediction and ground truth
-def letter_error_rate(pred_y,true_y,data):
+# Merge the repeated prediction and calculate edit distance of prediction and ground truth
+def letter_error_rate(pred_y, true_y, data):
     ed_accumalate = []
-    for p,t in zip(pred_y,true_y):
-        compressed_t = [w for w in t if (w!=1 and w!=0)]
+    for p, t in zip(pred_y, true_y):
+        compressed_t = [w for w in t if (w != 1 and w != 0)]
         
         compressed_p = []
         for p_w in p:
@@ -23,21 +23,21 @@ def letter_error_rate(pred_y,true_y,data):
         if data == 'timit':
             compressed_t = collapse_phn(compressed_t)
             compressed_p = collapse_phn(compressed_p)
-        ed_accumalate.append(ed.eval(compressed_p,compressed_t)/len(compressed_t))
+        ed_accumalate.append(ed.eval(compressed_p, compressed_t)/len(compressed_t))
     return ed_accumalate
 
 
-def label_smoothing_loss(pred_y,true_y,label_smoothing=0.1):
+def label_smoothing_loss(pred_y, true_y, label_smoothing=0.1):
     # Self defined loss for label smoothing
     # pred_y is log-scaled and true_y is one-hot format padded with all zero vector
     assert pred_y.size() == true_y.size()
-    seq_len = torch.sum(torch.sum(true_y,dim=-1),dim=-1,keepdim=True)
+    seq_len = torch.sum(torch.sum(true_y, dim=-1), dim=-1, keepdim=True)
     
     # calculate smoothen label, last term ensures padding vector remains all zero
     class_dim = true_y.size()[-1]
-    smooth_y = ((1.0-label_smoothing)*true_y+(label_smoothing/class_dim))*torch.sum(true_y,dim=-1,keepdim=True)
+    smooth_y = ((1.0-label_smoothing)*true_y+(label_smoothing/class_dim))*torch.sum(true_y, dim=-1, keepdim=True)
 
-    loss = - torch.mean(torch.sum((torch.sum(smooth_y * pred_y,dim=-1)/seq_len),dim=-1))
+    loss = - torch.mean(torch.sum((torch.sum(smooth_y * pred_y, dim=-1)/seq_len), dim=-1))
 
     return loss
 
@@ -70,7 +70,8 @@ def train(train_set, model, optimizer, tf_rate, conf, global_step, log_writer, d
 
         raw_pred_seq = model(batch_data, batch_label, tf_rate, batch_label)
 
-        pred_y = (torch.cat([torch.unsqueeze(each_y, 1) for each_y in raw_pred_seq], 1)[:, :max_label_len, :]).contiguous()
+        pred_y = (torch.cat([torch.unsqueeze(each_y, 1) for each_y in raw_pred_seq], 1)[:, :max_label_len, :])\
+            .contiguous()
 
         if label_smoothing == 0.0:
             pred_y = pred_y.permute(0, 2, 1)  # pred_y.contiguous().view(-1,output_class_dim)
@@ -79,18 +80,18 @@ def train(train_set, model, optimizer, tf_rate, conf, global_step, log_writer, d
             loss = criterion(pred_y, true_y)
             # variable -> numpy before sending into LER calculator
             batch_ler = letter_error_rate(torch.max(pred_y.permute(0, 2, 1), dim=2)[1].cpu().numpy(),
-                                        # .reshape(current_batch_size,max_label_len),
-                                        true_y.cpu().data.numpy(),
-                                        data)  # .reshape(current_batch_size,max_label_len), data)
+                                          # .reshape(current_batch_size,max_label_len),
+                                          true_y.cpu().data.numpy(),
+                                          data)  # .reshape(current_batch_size,max_label_len), data)
 
         else:
             true_y = batch_label[:, :max_label_len, :].contiguous()
             true_y = true_y.type(torch.cuda.FloatTensor) if use_gpu else true_y.type(torch.FloatTensor)
             loss = label_smoothing_loss(pred_y, true_y, label_smoothing=label_smoothing)
             batch_ler = letter_error_rate(torch.max(pred_y, dim=2)[1].cpu().numpy(),
-                                        # .reshape(current_batch_size,max_label_len),
-                                        torch.max(true_y, dim=2)[1].cpu().data.numpy(),
-                                        data)  # .reshape(current_batch_size,max_label_len), data)
+                                          # .reshape(current_batch_size,max_label_len),
+                                          torch.max(true_y, dim=2)[1].cpu().data.numpy(),
+                                          data)  # .reshape(current_batch_size,max_label_len), data)
 
         loss.backward()
         optimizer.step()
@@ -106,7 +107,8 @@ def train(train_set, model, optimizer, tf_rate, conf, global_step, log_writer, d
     return global_step
 
 
-def evaluate(evaluate_set, model, tf_rate, conf, global_step, log_writer, epoch_begin, train_begin, logger, epoch, is_valid, data='timit', test=False):
+def evaluate(evaluate_set, model, tf_rate, conf, global_step, log_writer, epoch_begin, train_begin,
+             logger, epoch, is_valid, data='timit', test=False):
     bucketing = conf['model_parameter']['bucketing']
     use_gpu = conf['model_parameter']['use_gpu']
 
@@ -133,7 +135,8 @@ def evaluate(evaluate_set, model, tf_rate, conf, global_step, log_writer, epoch_
 
             raw_pred_seq = model(batch_data, batch_label, 0, None)
 
-            pred_y = (torch.cat([torch.unsqueeze(each_y, 1) for each_y in raw_pred_seq], 1)[:, :max_label_len, :]).contiguous()
+            pred_y = (torch.cat([torch.unsqueeze(each_y, 1) for each_y in raw_pred_seq], 1)[:, :max_label_len, :])\
+                .contiguous()
 
             pred_y = pred_y.permute(0, 2, 1)  # pred_y.contiguous().view(-1,output_class_dim)
             true_y = torch.max(batch_label, dim=2)[1][:, :max_label_len].contiguous()  # .view(-1)
@@ -141,9 +144,9 @@ def evaluate(evaluate_set, model, tf_rate, conf, global_step, log_writer, epoch_
             loss = criterion(pred_y, true_y)
             # variable -> numpy before sending into LER calculator
             batch_ler = letter_error_rate(torch.max(pred_y.permute(0, 2, 1), dim=2)[1].cpu().numpy(),
-                                        # .reshape(current_batch_size,max_label_len),
-                                        true_y.cpu().data.numpy(),
-                                        data)  # .reshape(current_batch_size,max_label_len), data)
+                                          # .reshape(current_batch_size,max_label_len),
+                                          true_y.cpu().data.numpy(),
+                                          data)  # .reshape(current_batch_size,max_label_len), data)
 
             batch_loss = loss.cpu().data.numpy()
 
@@ -172,8 +175,8 @@ def evaluate(evaluate_set, model, tf_rate, conf, global_step, log_writer, epoch_
 
 
 def log_parser(log_file_path):
-    tr_loss,tt_loss,tr_ler,tt_ler = [], [], [], []
-    with open(log_file_path,'r') as log_f:
+    tr_loss, tt_loss, tr_ler, tt_ler = [], [], [], []
+    with open(log_file_path, 'r') as log_f:
         for line in log_f:
             tmp = line.split('_')
             tr_loss.append(float(tmp[3]))
@@ -181,7 +184,7 @@ def log_parser(log_file_path):
             tt_loss.append(float(tmp[7]))
             tt_ler.append(float(tmp[9]))
 
-    return tr_loss,tt_loss,tr_ler,tt_ler
+    return tr_loss, tt_loss, tr_ler, tt_ler
 
 
 def collapse_phn(seq, return_phn = False, drop_q = True):
