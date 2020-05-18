@@ -163,9 +163,5 @@ Be aware of some differences between this implementation and the originally prop
 - Supply experiment result of LibriSpeech dataset
 - WSJ Dataset
 
-## Acknowledgements
-- Special thanks to [William Chan](http://williamchan.ca/), the first author of LAS, for answering my questions during implementation.
-- Thanks [xiaoming](https://github.com/lezasantaizi), [Odie Ko](https://github.com/odie2630463) for identifying several issues in our implementation.
-
 ## References
 - TIMIT preprocessing : https://github.com/Faur/TIMIT
