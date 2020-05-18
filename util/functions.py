@@ -191,7 +191,7 @@ def train(train_set, model, optimizer, tf_rate, conf, global_step, log_writer, d
     return global_step
 
 
-def evaluate(evaluate_set, model, tf_rate, conf, global_step, log_writer, epoch_begin, train_begin, logger, epoch, is_valid, data='timit'):
+def evaluate(evaluate_set, model, tf_rate, conf, global_step, log_writer, epoch_begin, train_begin, logger, epoch, is_valid, data='timit', test=False):
     bucketing = conf['model_parameter']['bucketing']
     use_gpu = conf['model_parameter']['use_gpu']
 
@@ -247,8 +247,11 @@ def evaluate(evaluate_set, model, tf_rate, conf, global_step, log_writer, epoch_
     epoch_elapsed = (current - epoch_begin) / 60.0
     train_elapsed = (current - train_begin) / 3600.0
 
-    logger.info("epoch: {}, global step: {:6d}, loss: {:.4f}, cer: {:.4f}, elapsed: {:.2f}m {:.2f}h"
-                .format(epoch, global_step, float(now_loss), float(now_cer), epoch_elapsed, train_elapsed))
+    if not test:
+        logger.info("epoch: {}, global step: {:6d}, loss: {:.4f}, cer: {:.4f}, elapsed: {:.2f}m {:.2f}h"
+                    .format(epoch, global_step, float(now_loss), float(now_cer), epoch_elapsed, train_elapsed))
+    else:
+        logger.info("test epoch: {}, cer: {:.6f}".format(epoch, float(now_cer)))
 
     return now_cer
 

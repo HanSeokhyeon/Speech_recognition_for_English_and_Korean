@@ -103,11 +103,11 @@ for epoch in range(total_epochs):
     # Checkpoint
     if best_cer >= now_cer:
         best_cer = now_cer
+        best_epoch = epoch
         torch.save(model.state_dict(), model_path)
 
 
 model.load_state_dict(torch.load(model_path))
 model.eval()
 
-test_cer = evaluate(test_set, model, tf_rate, conf, global_step, log_writer, epoch_begin, train_begin, logger, epoch, False)
-logger.info("test result, cer: {:.6f}".format(float(test_cer)))
+test_cer = evaluate(test_set, model, tf_rate, conf, global_step, log_writer, epoch_begin, train_begin, logger, best_epoch, False, test=True)
