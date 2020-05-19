@@ -1,7 +1,7 @@
 import yaml
 from util.timit_dataset import load_dataset, create_dataloader
 from model.las_model import LAS, Listener, Speller
-from util.functions import train, evaluate
+from util.functions import train, evaluate, test
 import torch
 import torch.nn as nn
 from tensorboardX import SummaryWriter
@@ -68,7 +68,7 @@ for epoch in range(total_epochs):
     epoch_begin = time.time()
 
     global_step = train(train_set, model, optimizer, tf_rate, conf, global_step, log_writer)
-    now_cer = evaluate(valid_set, model, tf_rate, conf, global_step, log_writer, epoch_begin, train_begin, logger, epoch, True)
+    now_cer = evaluate(valid_set, model, conf, global_step, log_writer, epoch_begin, train_begin, logger, epoch)
 
     """
     # Generate Attention map
@@ -110,4 +110,4 @@ for epoch in range(total_epochs):
 model.load_state_dict(torch.load(model_path))
 model.eval()
 
-test_cer = evaluate(test_set, model, tf_rate, conf, global_step, log_writer, epoch_begin, train_begin, logger, best_epoch, False, test=True)
+test_cer = test(test_set, model, conf, global_step, log_writer, logger, best_epoch)

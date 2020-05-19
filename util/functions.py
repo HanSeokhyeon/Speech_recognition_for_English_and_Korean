@@ -107,8 +107,8 @@ def train(train_set, model, optimizer, tf_rate, conf, global_step, log_writer, d
     return global_step
 
 
-def evaluate(evaluate_set, model, tf_rate, conf, global_step, log_writer, epoch_begin, train_begin,
-             logger, epoch, is_valid, data='timit', test=False):
+def evaluate(evaluate_set, model, conf, global_step, log_writer, epoch_begin, train_begin,
+             logger, epoch, data='timit'):
     bucketing = conf['model_parameter']['bucketing']
     use_gpu = conf['model_parameter']['use_gpu']
 
@@ -154,22 +154,69 @@ def evaluate(evaluate_set, model, tf_rate, conf, global_step, log_writer, epoch_
             eval_ler.extend(batch_ler)
 
     now_loss, now_cer = np.array([sum(eval_loss) / len(eval_loss)]), np.mean(eval_ler)
-    if is_valid:
-        log_writer.add_scalars('loss', {'dev': now_loss}, global_step)
-        log_writer.add_scalars('cer', {'dev': now_cer}, global_step)
-    else:
-        log_writer.add_scalars('loss', {'test': now_loss}, global_step)
-        log_writer.add_scalars('cer', {'test': now_cer}, global_step)
+    log_writer.add_scalars('loss', {'dev': now_loss}, global_step)
+    log_writer.add_scalars('cer', {'dev': now_cer}, global_step)
 
     current = time.time()
     epoch_elapsed = (current - epoch_begin) / 60.0
     train_elapsed = (current - train_begin) / 3600.0
 
-    if not test:
-        logger.info("epoch: {}, global step: {:6d}, loss: {:.4f}, cer: {:.4f}, elapsed: {:.2f}m {:.2f}h"
-                    .format(epoch, global_step, float(now_loss), float(now_cer), epoch_elapsed, train_elapsed))
-    else:
-        logger.info("test epoch: {}, cer: {:.6f}".format(epoch, float(now_cer)))
+    logger.info("epoch: {}, global step: {:6d}, loss: {:.4f}, cer: {:.4f}, elapsed: {:.2f}m {:.2f}h"
+                .format(epoch, global_step, float(now_loss), float(now_cer), epoch_elapsed, train_elapsed))
+
+    return now_cer
+
+
+def test(evaluate_set, model, conf, global_step, log_writer, logger, epoch, data='timit'):
+    bucketing = conf['model_parameter']['bucketing']
+    use_gpu = conf['model_parameter']['use_gpu']
+
+    model.eval()
+
+    # Validation
+    eval_loss = []
+    eval_ler = []
+
+    with torch.no_grad():
+        for _, (batch_data, batch_label) in enumerate(evaluate_set):
+            if bucketing:
+                batch_data = batch_data.squeeze(dim=0)
+                batch_label = batch_data.squeeze(dim=0)
+            max_label_len = min([batch_label.size()[1], conf['model_parameter']['max_label_len']])
+
+            batch_data = Variable(batch_data).type(torch.FloatTensor)
+            batch_label = Variable(batch_label, requires_grad=False)
+            criterion = nn.NLLLoss(ignore_index=0)
+            if use_gpu:
+                batch_data = batch_data.cuda()
+                batch_label = batch_label.cuda()
+                criterion = criterion.cuda()
+
+            raw_pred_seq = model(batch_data, batch_label, 0, None)
+
+            pred_y = (torch.cat([torch.unsqueeze(each_y, 1) for each_y in raw_pred_seq], 1)[:, :max_label_len, :])\
+                .contiguous()
+
+            pred_y = pred_y.permute(0, 2, 1)  # pred_y.contiguous().view(-1,output_class_dim)
+            true_y = torch.max(batch_label, dim=2)[1][:, :max_label_len].contiguous()  # .view(-1)
+
+            loss = criterion(pred_y, true_y)
+            # variable -> numpy before sending into LER calculator
+            batch_ler = letter_error_rate(torch.max(pred_y.permute(0, 2, 1), dim=2)[1].cpu().numpy(),
+                                          # .reshape(current_batch_size,max_label_len),
+                                          true_y.cpu().data.numpy(),
+                                          data)  # .reshape(current_batch_size,max_label_len), data)
+
+            batch_loss = loss.cpu().data.numpy()
+
+            eval_loss.append(batch_loss)
+            eval_ler.extend(batch_ler)
+
+    now_loss, now_cer = np.array([sum(eval_loss) / len(eval_loss)]), np.mean(eval_ler)
+    log_writer.add_scalars('loss', {'test': now_loss}, global_step)
+    log_writer.add_scalars('cer', {'test': now_cer}, global_step)
+
+    logger.info("test epoch: {}, cer: {:.6f}".format(epoch, float(now_cer)))
 
     return now_cer
 
