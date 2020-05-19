@@ -70,36 +70,6 @@ for epoch in range(total_epochs):
     global_step = train(train_set, model, optimizer, tf_rate, conf, global_step, log_writer)
     now_cer = evaluate(valid_set, model, conf, global_step, log_writer, epoch_begin, train_begin, logger, epoch)
 
-    """
-    # Generate Attention map
-    if conf['model_parameter']['bucketing']:
-        feature = listener(Variable(batch_data.float()).squeeze(0).cuda())
-        batch_label = batch_label.squeeze(0)
-    else:
-        feature = listener(Variable(batch_data.float()).cuda())
-    pred_seq, attention_score = speller(feature)
-    
-    pred_seq = [char.cpu() for char in pred_seq]
-    for t in range(len(attention_score)):
-        for h in range(len(attention_score[t])):
-            attention_score[t][h] = attention_score[t][h].cpu()
-    del feature
-
-    att_map = {i:[] for i in range(conf['training_parameter']['batch_size'])}
-    num_head = len(attention_score[0])
-    for i in range(conf['training_parameter']['batch_size']):
-        for j in range(num_head):
-            att_map[i].append([])
-    for t,head_score in enumerate(attention_score):
-        for h,att_score in enumerate(head_score):
-            for idx,att in enumerate(att_score.data.numpy()):
-                att_map[idx][h].append(att)
-    for i in range(conf['training_parameter']['batch_size']-1):
-        for j in range(num_head):
-            m = np.repeat(np.expand_dims(np.array(att_map[i][j]),0),3,axis=0)
-            log_writer.add_image('attention_'+str(i)+'_head_'+str(j),
-                                 torch.FloatTensor(m), global_step)
-    """
     # Checkpoint
     if best_cer >= now_cer:
         best_cer = now_cer
