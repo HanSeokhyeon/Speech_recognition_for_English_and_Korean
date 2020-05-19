@@ -92,6 +92,7 @@ def edit_distance_by_phoneme(seq1, seq2, action_function=lowest_cost_action, tes
         return m, 0
     v0 = [0] * (n + 1)     # The two 'error' columns
     v1 = [0] * (n + 1)
+    v = [0] * 7
     for i in range(1, n + 1):
         v0[i] = i
     for i in range(1, m + 1):
@@ -104,13 +105,26 @@ def edit_distance_by_phoneme(seq1, seq2, action_function=lowest_cost_action, tes
             sub_cost = v0[j - 1] + cost
 
             action = action_function(ins_cost, del_cost, sub_cost, cost)
+            if seq2[j-1] == 1:
+                idx = 0
+            elif seq2[j-1] == 2:
+                idx = 1
+            elif seq2[j-1] == 3:
+                idx = 2
+            elif seq2[j-1] == 4:
+                idx = 3
+            else:
+                idx = 4
 
             if action in [EQUAL, REPLACE]:
                 v1[j] = sub_cost
+                # v[idx] += 1
             elif action == INSERT:
                 v1[j] = ins_cost
+                v[idx] += 1
             elif action == DELETE:
                 v1[j] = del_cost
+                # v[idx] += 1
             else:
                 raise Exception('Invalid dynamic programming option returned!')
                 # Copy the columns over
@@ -120,7 +134,8 @@ def edit_distance_by_phoneme(seq1, seq2, action_function=lowest_cost_action, tes
 
 
 if __name__=='__main__':
-    pred = [1, 2, 3, 4, 4, 5, 5]
+    pred = [1, 2, 3, 4, 4, 5]
     true = [1, 2, 3, 4, 5]
     print(ed.eval(pred, true)/len(true))
-    print(edit_distance(pred, true)/ len(true))
+    print(edit_distance(pred, true)/len(true))
+    print(edit_distance_by_phoneme(pred, true)/len(true))
