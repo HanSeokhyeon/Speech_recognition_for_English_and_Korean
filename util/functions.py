@@ -6,9 +6,42 @@ import editdistance as ed
 import time
 
 
-# letter_error_rate function
-# Merge the repeated prediction and calculate edit distance of prediction and ground truth
+def create_onehot_variable(input_x, encoding_dim=63):
+    # CreateOnehotVariable function
+    # *** DEV NOTE : This is a workaround to achieve one, I'm not sure how this function affects the training speed ***
+    # This is a function to generate an one-hot encoded tensor with given batch size and index
+    # Input : input_x which is a Tensor or Variable with shape [batch size, timesteps]
+    #         encoding_dim, the number of classes of input
+    # Output: onehot_x, a Variable containing onehot vector with shape [batch size, timesteps, encoding_dim]
+    if type(input_x) is Variable:
+        input_x = input_x.data
+    input_type = type(input_x)
+    batch_size = input_x.size(0)
+    time_steps = input_x.size(1)
+    input_x = input_x.unsqueeze(2).type(torch.LongTensor)
+    onehot_x = Variable(torch.LongTensor(batch_size, time_steps, encoding_dim).zero_().scatter_(-1, input_x, 1)).type(
+        input_type)
+
+    return onehot_x
+
+
+def time_distributed(input_module, input_x):
+    # TimeDistributed function
+    # This is a pytorch version of TimeDistributed layer in Keras I wrote
+    # The goal is to apply same module on each timestep of every instance
+    # Input : module to be applied timestep-wise (e.g. nn.Linear)
+    #         3D input (sequencial) with shape [batch size, timestep, feature]
+    # output: Processed output      with shape [batch size, timestep, output feature dim of input module]
+    batch_size = input_x.size(0)
+    time_steps = input_x.size(1)
+    reshaped_x = input_x.contiguous().view(-1, input_x.size(-1))
+    output_x = input_module(reshaped_x)
+    return output_x.view(batch_size, time_steps, -1)
+
+
 def letter_error_rate(pred_y, true_y, data):
+    # letter_error_rate function
+    # Merge the repeated prediction and calculate edit distance of prediction and ground truth
     ed_accumalate = []
     for p, t in zip(pred_y, true_y):
         compressed_t = [w for w in t if (w != 1 and w != 0)]

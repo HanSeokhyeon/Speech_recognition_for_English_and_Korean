@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions.categorical import Categorical
 
-from util.functions import TimeDistributed,CreateOnehotVariable
+from util.functions import time_distributed, create_onehot_variable
 import numpy as np
 
 
@@ -112,7 +112,7 @@ class Speller(nn.Module):
 
         batch_size = listener_feature.size()[0]
 
-        output_word = CreateOnehotVariable(self.float_type(np.zeros((batch_size,1))),self.label_dim)
+        output_word = create_onehot_variable(self.float_type(np.zeros((batch_size,1))),self.label_dim)
         if self.use_gpu:
             output_word = output_word.cuda()
         rnn_input = torch.cat([output_word,listener_feature[:,0:1,:]],dim=-1)
@@ -189,10 +189,10 @@ class Attention(nn.Module):
         if self.mlp_preprocess_input:
             if self.activate:
                 comp_decoder_state = self.activate(self.phi(decoder_state))
-                comp_listener_feature = self.activate(TimeDistributed(self.psi,listener_feature))
+                comp_listener_feature = self.activate(time_distributed(self.psi,listener_feature))
             else:
                 comp_decoder_state = self.phi(decoder_state)
-                comp_listener_feature = TimeDistributed(self.psi,listener_feature)
+                comp_listener_feature = time_distributed(self.psi,listener_feature)
         else:
             comp_decoder_state = decoder_state
             comp_listener_feature = listener_feature
@@ -212,8 +212,6 @@ class Attention(nn.Module):
             # TODO: other attention implementations
             pass
         
-        
-
         return attention_score,context
 
 
