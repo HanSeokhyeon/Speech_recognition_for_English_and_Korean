@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  train:
+    image: hsh0322/las-pytorch
+    volumes:
+      - ./:/opt/project
+    command:
+       python3 train_timit.py config/las_timit_mfcc_spikegram_150_config.yaml
+
+  tensorboard:
+    image: hsh0322/las-pytorch
+    volumes:
+      - ./:/opt/project
+    ports:
+      - "6006:6006"
+    command: tensorboard --logdir=log/las_timit --port=6006 --host=0.0.0.0
