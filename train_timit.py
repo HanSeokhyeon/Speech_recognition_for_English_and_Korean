@@ -21,6 +21,7 @@ if not torch.cuda.is_available():
 
 # Parameters loading
 torch.manual_seed(conf['training_parameter']['seed'])
+torch.cuda.manual_seed_all(conf['training_parameter']['seed'])
 total_epochs = conf['training_parameter']['total_epochs']
 use_pretrained = conf['training_parameter']['use_pretrained']
 valid_step = conf['training_parameter']['valid_step']
