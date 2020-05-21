@@ -1,4 +1,4 @@
-# Listen, Attend and Spell - PyTorch Implementation
+# Speech recognition using MFCC and Spikegram
 
 ## Description
 
