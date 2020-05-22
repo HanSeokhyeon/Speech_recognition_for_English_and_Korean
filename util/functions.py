@@ -277,10 +277,10 @@ def collapse_phn(seq, return_phn = False, drop_q = True):
                 "eh", "ey", "ae", "aa", "aw", "ay", "ah", "ao", "oy", "ow",
                 "uh", "uw", "ux", "er", "ax", "ix", "axr", "ax-h", "pau", "epi", "h#"]
 
-    phonemes2index = {k:(v+2) for v,k in enumerate(phonemes)}
-    index2phonemes = {(v+2):k for v,k in enumerate(phonemes)}
+    phonemes2index = {k: (v+2) for v, k in enumerate(phonemes)}
+    index2phonemes = {(v+2): k for v, k in enumerate(phonemes)}
 
-    phonemse_reduce_mapping = {"b": "b", "bcl": "h#", "d": "d", "dcl": "h#", "g": "g",
+    phoneme_reduce_mapping = {"b": "b", "bcl": "h#", "d": "d", "dcl": "h#", "g": "g",
                                "gcl": "h#", "p": "p", "pcl": "h#", "t": "t", "tcl": "h#",
                                "k": "k", "kcl": "h#", "dx": "dx", "q": "q", "jh": "jh",
                                "ch": "ch", "s": "s", "sh": "sh", "z": "z", "zh": "sh",
@@ -297,7 +297,7 @@ def collapse_phn(seq, return_phn = False, drop_q = True):
     # inverse index into phn
     seq = [index2phonemes[idx] for idx in seq]
     # collapse phn
-    seq = [phonemse_reduce_mapping[phn] for phn in seq]
+    seq = [phoneme_reduce_mapping[phn] for phn in seq]
     # Discard phn q
     if drop_q:
         seq = [phn for phn in seq if phn != "q"]
