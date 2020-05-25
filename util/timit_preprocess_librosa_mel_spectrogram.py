@@ -71,7 +71,7 @@ def create_mel_spectrogram(filename):
 									sr=rate,
 									n_fft=400,
 									hop_length=160,
-									n_mfcc=40,
+									n_mels=40,
 									center=False))
 	d_mel = get_delta(mel_spectrogram, 2)
 	a_mel = get_delta(d_mel, 2)
@@ -121,7 +121,7 @@ def preprocess_dataset(file_list):
 		total_duration = get_total_duration(phn_fname)
 		fr = open(phn_fname)
 
-		X_val, total_frames = create_mfcc(wav_fname)
+		X_val, total_frames = create_mel_spectrogram(wav_fname)
 		total_frames = int(total_frames)
 
 		X.append(X_val)
