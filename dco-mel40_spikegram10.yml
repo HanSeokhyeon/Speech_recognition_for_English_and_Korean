@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  train0:
+    image: hsh0322/las-pytorch
+    volumes:
+      - ./:/opt/project
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=1
+    command:
+       python3 train_timit.py config/las_timit_mel_spikegram_150_config.yaml
+
+  tensorboard0:
+    image: hsh0322/las-pytorch
+    volumes:
+      - ./:/opt/project
+    ports:
+      - "6006:6006"
+    command: tensorboard --logdir=log/las_timit --port=6006 --host=0.0.0.0
+
+#  train1:
+#    image: hsh0322/las-pytorch
+#    volumes:
+#      - ./:/opt/project
+#    environment:
+#      - NVIDIA_VISIBLE_DEVICES=1
+#    command:
+#      python3 train_timit.py config/las_timit_mfcc_spikegram_150_config1.yaml
+#
+#  tensorboard1:
+#    image: hsh0322/las-pytorch
+#    volumes:
+#      - ./:/opt/project
+#    ports:
+#      - "6005:6005"
+#    command: tensorboard --logdir=log/las_timit1 --port=6005 --host=0.0.0.0

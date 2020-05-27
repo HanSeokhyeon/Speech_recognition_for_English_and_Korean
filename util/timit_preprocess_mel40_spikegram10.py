@@ -73,12 +73,12 @@ def create_spikegram(filename):
     """
     rate, sample = 16000, np.fromfile(filename, dtype=np.int16)[512:]
     sample = sample / 32767.5
-    mel = librosa.feature.mel(sample,
-                              sr=rate,
-                              n_fft=400,
-                              hop_length=160,
-                              n_mels=40,
-                              center=False)
+    mel = librosa.core.power_to_db(librosa.feature.melspectrogram(sample,
+                                                                  sr=rate,
+                                                                  n_fft=400,
+                                                                  hop_length=160,
+                                                                  n_mels=40,
+                                                                  center=False))
 
     filename_spikegram = filename.replace('TIMIT', 'TIMIT_spikegram')
     rate, spikegram = 16000, get_data(filename_spikegram[:-4], sample.shape[0])
