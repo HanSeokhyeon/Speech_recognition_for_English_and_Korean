@@ -58,27 +58,27 @@ def get_delta(x, N):
     return delta
 
 
-def create_mel_spectrogram(filename):
-	"""Perform standard preprocessing, as described by Alex Graves (2012)
+def create_spectrogram(filename):
+    """Perform standard preprocessing, as described by Alex Graves (2012)
 	http://www.cs.toronto.edu/~graves/preprint.pdf
 	Output consists of 12 MFCC and 1 energy, as well as the first derivative of these.
 	[1 energy, 12 MFCC, 1 diff(energy), 12 diff(MFCC)
 	"""
 
-	rate, sample = 16000, np.fromfile(filename, dtype=np.int16)[512:]
-	sample = sample / 32767.5
-	mel_spectrogram = librosa.core.power_to_db(librosa.feature.melspectrogram(sample,
-									sr=rate,
+    rate, sample = 16000, np.fromfile(filename, dtype=np.int16)[512:]
+    sample = sample / 32767.5
+    spectrogram = np.abs(librosa.core.stft(sample,
 									n_fft=400,
 									hop_length=160,
-									n_mels=40,
-									center=False))
-	d_mel = get_delta(mel_spectrogram, 2)
-	a_mel = get_delta(d_mel, 2)
+									center=False)[:200, :].T)**2
+    spectrogram = np.sum(spectrogram.reshape(-1, 40, 5), axis=2).T
+    log_spectrogram = librosa.core.power_to_db(spectrogram)
+    d_mel = get_delta(log_spectrogram, 2)
+    a_mel = get_delta(d_mel, 2)
 
-	out = np.concatenate([mel_spectrogram.T, d_mel.T, a_mel.T], axis=1)
+    out = np.concatenate([log_spectrogram.T, d_mel.T, a_mel.T], axis=1)
 
-	return out, out.shape[0]
+    return out, out.shape[0]
 
 
 def calc_norm_param(X):
@@ -121,7 +121,7 @@ def preprocess_dataset(file_list):
 		total_duration = get_total_duration(phn_fname)
 		fr = open(phn_fname)
 
-		X_val, total_frames = create_mel_spectrogram(wav_fname)
+		X_val, total_frames = create_spectrogram(wav_fname)
 		total_frames = int(total_frames)
 
 		X.append(X_val)
