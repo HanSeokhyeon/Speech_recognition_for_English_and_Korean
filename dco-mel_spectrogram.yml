@@ -8,7 +8,7 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=1
     command:
-       python3 train_timit.py config/las_timit_mel_spectrogram_120_config.yaml
+       python3 train_timit.py config/timit/mel_spectrogram_120/config.yaml
 
   tensorboard:
     image: hsh0322/las-pytorch

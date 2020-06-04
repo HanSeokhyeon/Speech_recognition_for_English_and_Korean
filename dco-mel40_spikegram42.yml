@@ -8,7 +8,7 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=0
     command:
-       python3 train_timit.py config/las_timit_mel_spikegram_246_config.yaml
+       python3 train_timit.py config/timit/mel_spikegram_246/config.yaml
 
   tensorboard0:
     image: hsh0322/las-pytorch
@@ -25,7 +25,7 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=1
     command:
-      python3 train_timit.py config/las_timit_mel_spikegram_246_config1.yaml
+      python3 train_timit.py config/timit/mel_spikegram_246/config1.yaml
 
   tensorboard1:
     image: hsh0322/las-pytorch
