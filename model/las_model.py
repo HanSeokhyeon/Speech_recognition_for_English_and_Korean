@@ -34,8 +34,8 @@ class pBLSTMLayer(nn.Module):
         self.rnn_unit = getattr(nn, rnn_unit.upper())
 
         # feature dimension will be doubled since time resolution reduction
-        self.BLSTM = self.rnn_unit(input_feature_dim*2,hidden_dim,1, bidirectional=True, 
-                                   dropout=dropout_rate,batch_first=True)
+        self.BLSTM = self.rnn_unit(input_feature_dim*2, hidden_dim, 1, bidirectional=True,
+                                   dropout=dropout_rate, batch_first=True)
     
     def forward(self, input_x):
         self.BLSTM.flatten_parameters()
@@ -43,10 +43,10 @@ class pBLSTMLayer(nn.Module):
         timestep = input_x.size(1)
         feature_dim = input_x.size(2)
         # Reduce time resolution
-        input_x = input_x.contiguous().view(batch_size,int(timestep/2),feature_dim*2)
+        input_x = input_x.contiguous().view(batch_size, int(timestep/2), feature_dim*2)
         # Bidirectional RNN
-        output,hidden = self.BLSTM(input_x)
-        return output,hidden
+        output, hidden = self.BLSTM(input_x)
+        return output, hidden
 
 # Listener is a pBLSTM stacking 3 layers to reduce time resolution 8 times
 # Input shape should be [# of sample, timestep, features]
@@ -55,12 +55,12 @@ class Listener(nn.Module):
         super(Listener, self).__init__()
         # Listener RNN layer
         self.listener_layer = listener_layer
-        assert self.listener_layer>=1,'Listener should have at least 1 layer'
+        assert self.listener_layer >= 1, 'Listener should have at least 1 layer'
         
         self.pLSTM_layer0 = pBLSTMLayer(input_feature_dim,listener_hidden_dim, rnn_unit=rnn_unit, dropout_rate=dropout_rate)
 
         for i in range(1,self.listener_layer):
-            setattr(self, 'pLSTM_layer'+str(i), pBLSTMLayer(listener_hidden_dim*2,listener_hidden_dim, rnn_unit=rnn_unit, dropout_rate=dropout_rate))
+            setattr(self, 'pLSTM_layer'+str(i), pBLSTMLayer(listener_hidden_dim*2, listener_hidden_dim, rnn_unit=rnn_unit, dropout_rate=dropout_rate))
 
         self.use_gpu = use_gpu
         if self.use_gpu:
@@ -68,8 +68,8 @@ class Listener(nn.Module):
 
     def forward(self, input_x):
         output, _ = self.pLSTM_layer0(input_x)
-        for i in range(1,self.listener_layer):
-            output, _ = getattr(self,'pLSTM_layer'+str(i))(output)
+        for i in range(1, self.listener_layer):
+            output, _ = getattr(self, 'pLSTM_layer'+str(i))(output)
         
         return output
 
@@ -80,26 +80,26 @@ class Speller(nn.Module):
                  use_mlp_in_attention, mlp_dim_in_attention, mlp_activate_in_attention, listener_hidden_dim,
                  multi_head, decode_mode, **kwargs):
         super(Speller, self).__init__()
-        self.rnn_unit = getattr(nn,rnn_unit.upper())
+        self.rnn_unit = getattr(nn, rnn_unit.upper())
         self.max_label_len = max_label_len
         self.decode_mode = decode_mode
         self.use_gpu = use_gpu
         self.float_type = torch.torch.cuda.FloatTensor if use_gpu else torch.FloatTensor
         self.label_dim = output_class_dim
-        self.rnn_layer = self.rnn_unit(output_class_dim+speller_hidden_dim,speller_hidden_dim,num_layers=speller_rnn_layer,batch_first=True)
+        self.rnn_layer = self.rnn_unit(output_class_dim+speller_hidden_dim, speller_hidden_dim, num_layers=speller_rnn_layer, batch_first=True)
         self.attention = Attention( mlp_preprocess_input=use_mlp_in_attention, preprocess_mlp_dim=mlp_dim_in_attention,
                                     activate=mlp_activate_in_attention, input_feature_dim=2*listener_hidden_dim,
                                     multi_head=multi_head)
-        self.character_distribution = nn.Linear(speller_hidden_dim*2,output_class_dim)
+        self.character_distribution = nn.Linear(speller_hidden_dim*2, output_class_dim)
         self.softmax = nn.LogSoftmax(dim=-1)
         if self.use_gpu:
             self = self.cuda()
 
     # Stepwise operation of each sequence
-    def forward_step(self,input_word, last_hidden_state,listener_feature):
-        rnn_output, hidden_state = self.rnn_layer(input_word,last_hidden_state)
-        attention_score, context = self.attention(rnn_output,listener_feature)
-        concat_feature = torch.cat([rnn_output.squeeze(dim=1),context],dim=-1)
+    def forward_step(self, input_word, last_hidden_state, listener_feature):
+        rnn_output, hidden_state = self.rnn_layer(input_word, last_hidden_state)
+        attention_score, context = self.attention(rnn_output, listener_feature)
+        concat_feature = torch.cat([rnn_output.squeeze(dim=1), context], dim=-1)
         raw_pred = self.softmax(self.character_distribution(concat_feature))
 
         return raw_pred, hidden_state, context, attention_score
@@ -112,10 +112,10 @@ class Speller(nn.Module):
 
         batch_size = listener_feature.size()[0]
 
-        output_word = create_onehot_variable(self.float_type(np.zeros((batch_size,1))),self.label_dim)
+        output_word = create_onehot_variable(self.float_type(np.zeros((batch_size, 1))), self.label_dim)
         if self.use_gpu:
             output_word = output_word.cuda()
-        rnn_input = torch.cat([output_word,listener_feature[:,0:1,:]],dim=-1)
+        rnn_input = torch.cat([output_word, listener_feature[:, 0:1, :]], dim=-1)
 
         hidden_state = None
         raw_pred_seq = []
@@ -133,7 +133,7 @@ class Speller(nn.Module):
             attention_record.append(attention_score)
             # Teacher force - use ground truth as next step's input
             if teacher_force:
-                output_word = ground_truth[:,step:step+1,:].type(self.float_type)
+                output_word = ground_truth[:, step:step+1, :].type(self.float_type)
             else:
                 # Case 0. raw output as input
                 if self.decode_mode == 0:
@@ -152,7 +152,7 @@ class Speller(nn.Module):
                         output_word[idx, int(i)] = 1
                     output_word = output_word.unsqueeze(1)
                 
-            rnn_input = torch.cat([output_word, context.unsqueeze(1)],dim=-1)
+            rnn_input = torch.cat([output_word, context.unsqueeze(1)], dim=-1)
 
         return raw_pred_seq, attention_record
 
@@ -165,8 +165,7 @@ class Speller(nn.Module):
 # Output: Attention score                    with shape [batch size, T (attention score of each time step)]
 #         Context vector                     with shape [batch size,  listener feature dimension]
 #         (i.e. weighted (by attention score) sum of all timesteps T's feature)
-class Attention(nn.Module):  
-
+class Attention(nn.Module):
     def __init__(self, mlp_preprocess_input, preprocess_mlp_dim, activate, mode='dot', input_feature_dim=512,
                 multi_head=1):
         super(Attention,self).__init__()
@@ -175,13 +174,13 @@ class Attention(nn.Module):
         self.multi_head = multi_head
         self.softmax = nn.Softmax(dim=-1)
         if mlp_preprocess_input:
-            self.preprocess_mlp_dim  = preprocess_mlp_dim
-            self.phi = nn.Linear(input_feature_dim,preprocess_mlp_dim*multi_head)
-            self.psi = nn.Linear(input_feature_dim,preprocess_mlp_dim)
+            self.preprocess_mlp_dim = preprocess_mlp_dim
+            self.phi = nn.Linear(input_feature_dim, preprocess_mlp_dim*multi_head)
+            self.psi = nn.Linear(input_feature_dim, preprocess_mlp_dim)
             if self.multi_head > 1:
-                self.dim_reduce = nn.Linear(input_feature_dim*multi_head,input_feature_dim)
+                self.dim_reduce = nn.Linear(input_feature_dim*multi_head, input_feature_dim)
             if activate != 'None':
-                self.activate = getattr(F,activate)
+                self.activate = getattr(F, activate)
             else:
                 self.activate = None
 
@@ -189,36 +188,27 @@ class Attention(nn.Module):
         if self.mlp_preprocess_input:
             if self.activate:
                 comp_decoder_state = self.activate(self.phi(decoder_state))
-                comp_listener_feature = self.activate(time_distributed(self.psi,listener_feature))
+                comp_listener_feature = self.activate(time_distributed(self.psi, listener_feature))
             else:
                 comp_decoder_state = self.phi(decoder_state)
-                comp_listener_feature = time_distributed(self.psi,listener_feature)
+                comp_listener_feature = time_distributed(self.psi, listener_feature)
         else:
             comp_decoder_state = decoder_state
             comp_listener_feature = listener_feature
 
         if self.mode == 'dot':
             if self.multi_head == 1:
-                energy = torch.bmm(comp_decoder_state,comp_listener_feature.transpose(1, 2)).squeeze(dim=1)
+                energy = torch.bmm(comp_decoder_state, comp_listener_feature.transpose(1, 2)).squeeze(dim=1)
                 attention_score = [self.softmax(energy)]
-                context = torch.sum(listener_feature*attention_score[0].unsqueeze(2).repeat(1,1,listener_feature.size(2)),dim=1)
+                context = torch.sum(listener_feature*attention_score[0].unsqueeze(2).repeat(1, 1, listener_feature.size(2)), dim=1)
             else:
-                attention_score =  [ self.softmax(torch.bmm(att_querry,comp_listener_feature.transpose(1, 2)).squeeze(dim=1))\
-                                    for att_querry in torch.split(comp_decoder_state, self.preprocess_mlp_dim, dim=-1)]
-                projected_src = [torch.sum(listener_feature*att_s.unsqueeze(2).repeat(1,1,listener_feature.size(2)),dim=1) \
-                                for att_s in attention_score]
-                context = self.dim_reduce(torch.cat(projected_src,dim=-1))
+                attention_score = [self.softmax(torch.bmm(att_querry, comp_listener_feature.transpose(1, 2)).squeeze(dim=1))\
+                                   for att_querry in torch.split(comp_decoder_state, self.preprocess_mlp_dim, dim=-1)]
+                projected_src = [torch.sum(listener_feature*att_s.unsqueeze(2).repeat(1, 1, listener_feature.size(2)), dim=1)\
+                                 for att_s in attention_score]
+                context = self.dim_reduce(torch.cat(projected_src, dim=-1))
         else:
             # TODO: other attention implementations
             pass
         
-        return attention_score,context
-
-
-
-
-
-
-
-
-
+        return attention_score, context
