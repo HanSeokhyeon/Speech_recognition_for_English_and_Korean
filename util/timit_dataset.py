@@ -37,7 +37,7 @@ def one_hot_encode(Y, max_len, max_idx=61):
                 new_y[idx, cnt, label+2] = 1.0
                 cnt += 1
                 last_value = label
-        new_y[idx, cnt, 1] = 1.0 # <eos>
+        new_y[idx, cnt, 1] = 1.0  # <eos>
     return new_y
 
 
