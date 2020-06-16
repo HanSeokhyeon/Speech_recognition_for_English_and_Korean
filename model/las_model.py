@@ -202,8 +202,8 @@ class Attention(nn.Module):
                 attention_score = [self.softmax(energy)]
                 context = torch.sum(listener_feature*attention_score[0].unsqueeze(2).repeat(1, 1, listener_feature.size(2)), dim=1)
             else:
-                attention_score = [self.softmax(torch.bmm(att_querry, comp_listener_feature.transpose(1, 2)).squeeze(dim=1))\
-                                   for att_querry in torch.split(comp_decoder_state, self.preprocess_mlp_dim, dim=-1)]
+                attention_score = [self.softmax(torch.bmm(att_query, comp_listener_feature.transpose(1, 2)).squeeze(dim=1))\
+                                   for att_query in torch.split(comp_decoder_state, self.preprocess_mlp_dim, dim=-1)]
                 projected_src = [torch.sum(listener_feature*att_s.unsqueeze(2).repeat(1, 1, listener_feature.size(2)), dim=1)\
                                  for att_s in attention_score]
                 context = self.dim_reduce(torch.cat(projected_src, dim=-1))
