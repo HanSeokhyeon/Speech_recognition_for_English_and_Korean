@@ -144,7 +144,7 @@ class Speller(nn.Module):
                     for idx, i in enumerate(raw_pred.argmax(dim=1)):
                         output_word[idx, int(i)] = 1
                     output_word = output_word.unsqueeze(1)             
-                # Case 2. Sample categotical label from raw prediction
+                # Case 2. Sample categorical label from raw prediction
                 else:
                     sampled_word = Categorical(raw_pred).sample()
                     output_word = torch.zeros_like(raw_pred)
