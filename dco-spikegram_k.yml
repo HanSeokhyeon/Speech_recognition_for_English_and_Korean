@@ -8,7 +8,7 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=0
     command:
-       python3 train_timit.py config/timit/spikegram_k_8/config.yaml
+       python3 train_timit.py config/timit/spikegram_k_4/config.yaml
 
   tensorboard0:
     image: hsh0322/las-pytorch
@@ -25,7 +25,7 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=1
     command:
-      python3 train_timit.py config/timit/spikegram_k_8/config1.yaml
+      python3 train_timit.py config/timit/spikegram_k_4/config1.yaml
 
   tensorboard1:
     image: hsh0322/las-pytorch
@@ -42,7 +42,7 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=0
     command:
-      python3 train_timit.py config/timit/spikegram_k_20/config.yaml
+      python3 train_timit.py config/timit/spikegram_k_40/config.yaml
 
   tensorboard2:
     image: hsh0322/las-pytorch
@@ -59,7 +59,7 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=1
     command:
-      python3 train_timit.py config/timit/spikegram_k_20/config1.yaml
+      python3 train_timit.py config/timit/spikegram_k_40/config1.yaml
 
   tensorboard3:
     image: hsh0322/las-pytorch
