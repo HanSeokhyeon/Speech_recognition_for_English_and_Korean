@@ -30,7 +30,7 @@ target_path	= os.path.join(paths, sys.argv[2])
 
 spike_frame = 2048 * 6
 n_band = 32
-n_time = 10
+n_time = 8
 n_structure = 4
 
 # 61 different phonemes

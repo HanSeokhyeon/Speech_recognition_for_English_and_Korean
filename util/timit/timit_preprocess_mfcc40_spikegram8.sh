@@ -4,4 +4,4 @@ fi
 echo 'Transfering raw TIMIT wave file format from NIST to RIFF.'
 echo ' '
 # MFCC
-python3 timit_preprocess_mfcc40_spikegram10.py $1 timit_mfcc_spikegram_150
+python3 timit_preprocess_mfcc40_spikegram8.py $1 timit_mfcc_spikegram_144
