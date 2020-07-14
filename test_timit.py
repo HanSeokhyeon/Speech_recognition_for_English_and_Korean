@@ -6,7 +6,8 @@ import torch
 from tensorboardX import SummaryWriter
 import argparse
 from logger import *
-from copy import deepcopy
+import numpy as np
+import pickle
 
 # Load config file for experiment
 parser = argparse.ArgumentParser(description='Training script for LAS on TIMIT .')
@@ -42,20 +43,25 @@ model = LAS(listener, speller)
 # model = nn.DataParallel(model)
 model.to(device)
 
-model_path = "{}{}.pt".format(conf['meta_variable']['checkpoint_dir'], conf['meta_variable']['experiment_name'])
-
+model_path = "{}{}.pt".format(conf['meta_variable']['checkpoint_dir'], "las_timit_mfcc40_spikegram40")
 # save checkpoint with the best ler
 global_step = 0
 
-n_repeats = 5
+n_repeats = 1
 
-# model.load_state_dict(torch.load(model_path))
-# model.eval()
+model.load_state_dict(torch.load(model_path))
+model.eval()
 
 
-def shuffle_feature(x):
-    x = np.concatenate(x, axis=0)
-    pass
+def shuffle_feature(x, idx):
+    x_all = np.concatenate(x, axis=0)
+    x_all[:, idx] = np.random.permutation(x_all[:, idx])
+    x_result, start, end = [], 0, 0
+    for x_tmp in x:
+        end = end+x_tmp.shape[0]
+        x_result.append(x_all[start:end, :])
+        start = end
+    return x_result
 
 
 # Load preprocessed TIMIT Dataset ( using testing set directly here, replace them with validation set your self)
@@ -63,15 +69,13 @@ def shuffle_feature(x):
 # Y : Squeeze repeated label and apply one-hot encoding (preserve 0 for <sos> and 1 for <eos>)
 _, _, _, _, X_test, y_test = load_dataset(**conf['meta_variable'])
 test_set = create_dataloader(X_test, y_test, **conf['model_parameter'], **conf['training_parameter'], shuffle=False)
-max_cer = test(test_set, model, conf, global_step, log_writer, logger, 0)
+max_cer = test(test_set, model, conf, global_step, log_writer, logger, -1)
 
 result = []
-for feature in range(conf['model_parameter']['input_feature_dim']):
+for feature in range(conf['model_parameter']['input_feature_dim']//3):
     now_pi = []
     for i in range(n_repeats):
-        X_test_shuffled = np.copy(X_test)
-        shuffle_feature(X_test_shuffled)
-        np.random.shuffle(X_test_shuffled[:, feature])
+        X_test_shuffled = shuffle_feature(X_test, feature)
 
         test_set = create_dataloader(X_test_shuffled, y_test, **conf['model_parameter'], **conf['training_parameter'], shuffle=False)
         now_cer = test(test_set, model, conf, global_step, log_writer, logger, feature)
@@ -81,4 +85,8 @@ for feature in range(conf['model_parameter']['input_feature_dim']):
     mean, std = np.mean(now_pi), np.std(now_pi)
     result.append((mean, std))
 
+for i, m, s in enumerate(result):
+    logger.info("feature: {}, mean: {}, std: {}".format(i, m, s))
 
+with open('pfi.pkl', 'wb') as f:
+    pickle.dump(result, f)
