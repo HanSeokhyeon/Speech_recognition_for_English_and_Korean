@@ -68,7 +68,7 @@ for epoch in range(total_epochs):
 
     epoch_begin = time.time()
 
-    # test_cer = test(test_set, model, conf, global_step, log_writer, logger, epoch)
+    # test_cer = test(test_set, model, conf, global_step, log_writer, logger, epoch, mode='phonetic')
 
     global_step = train(train_set, model, optimizer, tf_rate, conf, global_step, log_writer)
     now_cer = evaluate(valid_set, model, conf, global_step, log_writer, epoch_begin, train_begin, logger, epoch)

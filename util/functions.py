@@ -60,6 +60,54 @@ def letter_error_rate(pred_y, true_y, data):
     return ed_accumalate
 
 
+def letter_error_rate_by_phonetic_class(pred_y, true_y, data):
+    def get_class(idx):
+        reduce_idx2broad_class_idx = {2: 0, 4: 0, 6: 0, 8: 0, 10: 0, 12: 0, 14: 0,  # Stops      b, d, g, p, t, k, dx, q
+                                      16: 1, 17: 1,  # Affricate  jh, ch
+                                      18: 2, 19: 2, 20: 2, 22: 2, 23: 2, 24: 2, 25: 2,  # Fricative  s, sh, z, zh, f, th, v, dh
+                                      33: 3, 34: 3, 35: 3, 36: 3, 37: 3,  # Glides     l, r, w, y, hh, hv, el
+                                      26: 4, 27: 4, 28: 4,  # Nasals     m, n, ng, em, en, eng, nx
+                                      40: 5, 41: 5, 42: 5, 43: 5, 44: 5, 45: 5, 46: 5, 47: 5, 48: 5, 50: 5, 51: 5, 52: 5, 53: 5, 55: 5,  # Vowels     iy, ih, eh, ey, ae, aa, aw, ay, ah, ao, oy, ow, uh, uw, ux, er, ax, ix, axr, ax-h
+                                      62: 6}  # Others     pau, epi, h#
+        return reduce_idx2broad_class_idx[idx]
+
+    # letter_error_rate function
+    # Merge the repeated prediction and calculate edit distance of prediction and ground truth
+    ed_accumalate, ed_accumalate_by_class = [], []
+    for p, t in zip(pred_y, true_y):
+        compressed_t = [w for w in t if (w != 1 and w != 0)]
+
+        compressed_p = []
+        for p_w in p:
+            if p_w == 0:
+                continue
+            if p_w == 1:
+                break
+            compressed_p.append(p_w)
+        if data == 'timit':
+            compressed_t = collapse_phn(compressed_t)
+            compressed_p = collapse_phn(compressed_p)
+
+        ed_accumalate.append(ed.eval(compressed_p, compressed_t) / len(compressed_t))
+
+        compressed_t_by_class = [[] for _ in range(7)]
+        compressed_p_by_class = [[] for _ in range(7)]
+
+        for ta in compressed_t:
+            compressed_t_by_class[get_class(ta)].append(ta)
+        for pr in compressed_p:
+            compressed_p_by_class[get_class(pr)].append(pr)
+
+        by_class = []
+        for ct, cp in zip(compressed_t_by_class, compressed_p_by_class):
+            if not ct:
+                by_class.append(0)
+            else:
+                by_class.append(ed.eval(cp, ct) / len(ct))
+        ed_accumalate_by_class.append(by_class)
+    return ed_accumalate, ed_accumalate_by_class
+
+
 def label_smoothing_loss(pred_y, true_y, label_smoothing=0.1):
     # Self defined loss for label smoothing
     # pred_y is log-scaled and true_y is one-hot format padded with all zero vector
@@ -200,7 +248,7 @@ def evaluate(evaluate_set, model, conf, global_step, log_writer, epoch_begin, tr
     return now_cer
 
 
-def test(evaluate_set, model, conf, global_step, log_writer, logger, epoch, data='timit'):
+def test(evaluate_set, model, conf, global_step, log_writer, logger, epoch, data='timit', mode='normal'):
     bucketing = conf['model_parameter']['bucketing']
     use_gpu = conf['model_parameter']['use_gpu']
 
@@ -209,6 +257,7 @@ def test(evaluate_set, model, conf, global_step, log_writer, logger, epoch, data
     # Validation
     eval_loss = []
     eval_ler = []
+    eval_cers = []
 
     with torch.no_grad():
         for _, (batch_data, batch_label) in enumerate(evaluate_set):
@@ -234,24 +283,35 @@ def test(evaluate_set, model, conf, global_step, log_writer, logger, epoch, data
             true_y = torch.max(batch_label, dim=2)[1][:, :max_label_len].contiguous()  # .view(-1)
 
             loss = criterion(pred_y, true_y)
-            # variable -> numpy before sending into LER calculator
-            batch_ler = letter_error_rate(torch.max(pred_y.permute(0, 2, 1), dim=2)[1].cpu().numpy(),
-                                          # .reshape(current_batch_size,max_label_len),
-                                          true_y.cpu().data.numpy(),
-                                          data)  # .reshape(current_batch_size,max_label_len), data)
 
+            if mode == 'normal':
+                # variable -> numpy before sending into LER calculator
+                batch_ler = letter_error_rate(torch.max(pred_y.permute(0, 2, 1), dim=2)[1].cpu().numpy(),
+                                              # .reshape(current_batch_size,max_label_len),
+                                              true_y.cpu().data.numpy(),
+                                              data)  # .reshape(current_batch_size,max_label_len), data)
+            elif mode == 'phonetic':
+                batch_ler, batch_cers = letter_error_rate_by_phonetic_class(torch.max(pred_y.permute(0, 2, 1), dim=2)[1].cpu().numpy(),
+                                              # .reshape(current_batch_size,max_label_len),
+                                              true_y.cpu().data.numpy(),
+                                              data)  # .reshape(current_batch_size,max_label_len), data)
             batch_loss = loss.cpu().data.numpy()
 
             eval_loss.append(batch_loss)
             eval_ler.extend(batch_ler)
+            eval_cers.extend(batch_cers)
 
     now_loss, now_cer = np.array([sum(eval_loss) / len(eval_loss)]), np.mean(eval_ler)
     log_writer.add_scalars('loss', {'test': now_loss}, global_step)
     log_writer.add_scalars('cer', {'test': now_cer}, global_step)
 
     logger.info("test epoch: {}, cer: {:.6f}".format(epoch, float(now_cer)))
-
-    return now_cer
+    if mode == 'normal':
+        return now_cer
+    elif mode == 'phonetic':
+        now_cers = np.mean(np.array(eval_cers), axis=0)
+        logger.info(" ".join(map(str, now_cers)))
+        return now_cer, now_cers
 
 
 def log_parser(log_file_path):

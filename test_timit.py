@@ -43,7 +43,7 @@ model = LAS(listener, speller)
 # model = nn.DataParallel(model)
 model.to(device)
 
-model_path = "{}{}.pt".format(conf['meta_variable']['checkpoint_dir'], "las_timit_mel40_spikegram40")
+model_path = "{}{}.pt".format(conf['meta_variable']['checkpoint_dir'], "las_timit_mel40_mfcc40")
 # save checkpoint with the best ler
 global_step = 0
 
@@ -69,7 +69,9 @@ def shuffle_feature(x, idx):
 # Y : Squeeze repeated label and apply one-hot encoding (preserve 0 for <sos> and 1 for <eos>)
 _, _, _, _, X_test, y_test = load_dataset(**conf['meta_variable'])
 test_set = create_dataloader(X_test, y_test, **conf['model_parameter'], **conf['training_parameter'], shuffle=False)
-max_cer = test(test_set, model, conf, global_step, log_writer, logger, -1)
+max_cer = test(test_set, model, conf, global_step, log_writer, logger, -1, mode='phonetic')
+
+exit()
 
 result = [[max_cer]]
 for feature in range(conf['model_parameter']['input_feature_dim']//3):
