@@ -295,11 +295,11 @@ def test(evaluate_set, model, conf, global_step, log_writer, logger, epoch, data
                                               # .reshape(current_batch_size,max_label_len),
                                               true_y.cpu().data.numpy(),
                                               data)  # .reshape(current_batch_size,max_label_len), data)
+                eval_cers.extend(batch_cers)
             batch_loss = loss.cpu().data.numpy()
 
             eval_loss.append(batch_loss)
             eval_ler.extend(batch_ler)
-            eval_cers.extend(batch_cers)
 
     now_loss, now_cer = np.array([sum(eval_loss) / len(eval_loss)]), np.mean(eval_ler)
     log_writer.add_scalars('loss', {'test': now_loss}, global_step)
