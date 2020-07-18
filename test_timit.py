@@ -77,7 +77,6 @@ exit()
 
 result = [[max_cer]]
 for feature in range(conf['model_parameter']['input_feature_dim']//3):
-# for feature in range(1):
     now_pi = []
     for i in range(n_repeats):
         X_test_shuffled = shuffle_feature(X_test, feature)
