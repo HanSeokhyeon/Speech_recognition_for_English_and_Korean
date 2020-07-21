@@ -43,7 +43,7 @@ model = LAS(listener, speller)
 # model = nn.DataParallel(model)
 model.to(device)
 
-model_path = "{}{}.pt".format(conf['meta_variable']['checkpoint_dir'], "las_timit_mel40_mfcc40")
+model_path = "{}{}.pt".format(conf['meta_variable']['checkpoint_dir'], "las_timit_spikegram36")
 # save checkpoint with the best ler
 global_step = 0
 
