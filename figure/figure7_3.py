@@ -38,7 +38,7 @@ for i in range(80):
 
 plt.subplot(2, 1, 1)
 
-ax = sns.heatmap(corr, annot=False, mask=mask, cmap='gray', xticklabels=tickslabel, yticklabels=list(reversed(tickslabel)), vmin=0, vmax=1)
+ax = sns.heatmap(corr, annot=False, mask=mask, cmap='binary', xticklabels=tickslabel, yticklabels=list(reversed(tickslabel)), vmin=0, vmax=1)
 ax.set_xticks(ticks)
 ax.set_yticks(ticks)
 
@@ -78,7 +78,7 @@ for i in range(80):
 
 plt.subplot(2, 1, 2)
 
-ax = sns.heatmap(corr, annot=False, mask=mask, cmap='gray', xticklabels=tickslabel, yticklabels=list(reversed(tickslabel)), vmin=0, vmax=1)
+ax = sns.heatmap(corr, annot=False, mask=mask, cmap='binary', xticklabels=tickslabel, yticklabels=list(reversed(tickslabel)), vmin=0, vmax=1)
 ax.set_xticks(ticks_x)
 ax.set_yticks(ticks_y)
 
