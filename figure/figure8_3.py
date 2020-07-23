@@ -28,6 +28,7 @@ for i, cer in enumerate(cers):
     df = df.append(pfi, ignore_index=True)
 
 plt.subplot(2, 1, 1)
+
 sns.barplot(x='Feature', y='PFI', data=df, ci=None, color='gray')
 
 plt.xticks([20, 60], ["$Mel_{0...39}$", "$MFCC_{0...39}$"])
