@@ -43,7 +43,7 @@ model = LAS(listener, speller)
 # model = nn.DataParallel(model)
 model.to(device)
 
-model_path = "{}{}.pt".format(conf['meta_variable']['checkpoint_dir'], "las_timit_spikegram36")
+model_path = "{}{}.pt".format(conf['meta_variable']['checkpoint_dir'], "las_timit_mel40_mfcc40")
 # save checkpoint with the best ler
 global_step = 0
 
@@ -56,8 +56,8 @@ model.eval()
 def shuffle_feature(x, idx):
     x_all = np.concatenate(x, axis=0)
     x_all[:, idx] = np.random.permutation(x_all[:, idx])
-    x_all[:, idx*2] = np.random.permutation(x_all[:, idx*2])
-    x_all[:, idx*3] = np.random.permutation(x_all[:, idx*3])
+    # x_all[:, idx*2] = np.random.permutation(x_all[:, idx*2])
+    # x_all[:, idx*3] = np.random.permutation(x_all[:, idx*3])
     x_result, start, end = [], 0, 0
     for x_tmp in x:
         end = end+x_tmp.shape[0]
@@ -73,7 +73,7 @@ _, _, _, _, X_test, y_test = load_dataset(**conf['meta_variable'])
 test_set = create_dataloader(X_test, y_test, **conf['model_parameter'], **conf['training_parameter'], shuffle=False)
 max_cer, _ = test(test_set, model, conf, global_step, log_writer, logger, -1, mode='phonetic')
 
-exit()
+# exit()
 
 result = [[max_cer]]
 for feature in range(conf['model_parameter']['input_feature_dim']//3):
@@ -88,5 +88,5 @@ for feature in range(conf['model_parameter']['input_feature_dim']//3):
 
 logger.info("\n".join(map(str, result)))
 
-with open('pfi_mel40_spikegram40_5_dd.pkl', 'wb') as f:
+with open('pfi_mel40_mfcc40_5.pkl', 'wb') as f:
     pickle.dump(result, f)

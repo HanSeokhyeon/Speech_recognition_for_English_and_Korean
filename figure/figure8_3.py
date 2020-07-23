@@ -30,7 +30,7 @@ for i, cer in enumerate(cers):
 plt.subplot(2, 1, 1)
 sns.barplot(x='Feature', y='PFI', data=df, ci=None, color='gray')
 
-plt.xticks([20, 60], ["$X_{0...39}$", "$MFCC_{0...39}$"])
+plt.xticks([20, 60], ["$Mel_{0...39}$", "$MFCC_{0...39}$"])
 plt.axvline(39.5, color='black', alpha=0.7)
 
 plt.ylim(-1.5, 4.5)
@@ -53,7 +53,7 @@ plt.subplot(2, 1, 2)
 
 sns.barplot(x='Feature', y='PFI', data=df, ci=None, color='gray')
 
-plt.xticks([20, 56, 76], ["$X_{0...39}$", "$G_{0...31}$", "$T_{0...7}$"])
+plt.xticks([20, 56, 76], ["$Mel_{0...39}$", "$G_{0...31}$", "$T_{0...7}$"])
 plt.axvline(39.5, color='black', alpha=0.7)
 plt.axvline(71.5, color='black', alpha=0.7)
 
