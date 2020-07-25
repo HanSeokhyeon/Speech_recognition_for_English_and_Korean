@@ -23,7 +23,6 @@ X = np.concatenate([X[:, 40:], X[:, :40]], axis=1)
 dfx = pd.DataFrame(X, columns=range(80))
 corr = dfx.corr()
 corr = corr.iloc[::-1]
-# corr[79][0] = -1
 
 ticks_x = [0, 10, 20, 30,
          40, 48, 56, 64,
