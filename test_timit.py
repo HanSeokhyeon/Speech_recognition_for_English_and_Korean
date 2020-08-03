@@ -73,7 +73,7 @@ _, _, _, _, X_test, y_test = load_dataset(**conf['meta_variable'])
 test_set = create_dataloader(X_test, y_test, **conf['model_parameter'], **conf['training_parameter'], shuffle=False)
 max_cer, _ = test(test_set, model, conf, global_step, log_writer, logger, -1, mode='phonetic')
 
-# exit()
+exit()
 
 result = [[max_cer]]
 for feature in range(conf['model_parameter']['input_feature_dim']//3):
