@@ -27,18 +27,15 @@ plt.ylabel("Frequency [Hz]")
 ###################################################################
 
 plt.subplot(3, 1, 2)
-mel_spectrogram = librosa.feature.melspectrogram(y=signal/32767.5, sr=16000, n_fft=400, hop_length=160, n_mels=40)
+mel_spectrogram = librosa.feature.melspectrogram(y=signal/32767.5, sr=16000, n_fft=400, hop_length=160, n_mels=32)
 display.specshow(librosa.power_to_db(mel_spectrogram, ref=np.max), y_axis='linear', sr=16000, hop_length=160,
                          x_axis='time', fmax=8000, cmap='gray')
-
-mel_filter_center_freq = np.argmax(librosa.filters.mel(sr=16000, n_fft=400, n_mels=40).T, axis=0) * 40
 
 plt.title("Mel spectrogram")
 
 plt.xticks([1, 2, 3])
 plt.xlabel("Time [s]")
 plt.yticks([0, 2000, 4000, 6000, 8000])
-# plt.yticks([mel_filter_center_freq[f] for f in [9, 19, 29, 39]], [10, 20, 30, 40])
 plt.ylabel("Frequency [Hz]")
 
 ###################################################################
@@ -73,7 +70,6 @@ plt.xlim(0, len(signal))
 plt.xlabel("Time [s]")
 
 plt.yticks([0, 2000, 4000, 6000, 8000])
-# plt.yticks([freq_value[i] for i in [10, 20, 30]], [10, 20, 30])
 plt.ylim(0, 8000)
 plt.ylabel("Band")
 plt.ylabel("Frequency [Hz]")
