@@ -6,7 +6,7 @@ services:
     volumes:
       - ./:/opt/project
     environment:
-      - NVIDIA_VISIBLE_DEVICES=1
+      - NVIDIA_VISIBLE_DEVICES=0
     command:
        python3 train_timit.py config/timit/mel_spikegram_192/config.yaml
 
