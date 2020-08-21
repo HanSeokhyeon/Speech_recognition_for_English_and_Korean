@@ -31,7 +31,7 @@ mel_spectrogram = librosa.feature.melspectrogram(y=signal/32767.5, sr=16000, n_f
 display.specshow(librosa.power_to_db(mel_spectrogram, ref=np.max), y_axis='linear', sr=16000, hop_length=160,
                          x_axis='time', fmax=8000, cmap='gray')
 
-plt.title("Mel spectrogram")
+plt.title("Mel-spectrogram")
 
 plt.xticks([1, 2, 3])
 plt.xlabel("Time [s]")
