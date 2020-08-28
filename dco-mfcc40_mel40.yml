@@ -34,6 +34,7 @@ services:
     ports:
       - "6005:6005"
     command: tensorboard --logdir=log/las_timit1 --port=6005 --host=0.0.0.0
+    
 
   train2:
     image: hsh0322/las-pytorch
