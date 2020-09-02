@@ -1,0 +1,70 @@
+version: '3'
+
+services:
+  train0:
+    image: hsh0322/las-pytorch
+    volumes:
+      - ./:/opt/project
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=0
+    command:
+       python3 train_timit.py config/timit/mel_spikegram_168_2/config.yaml
+
+  tensorboard0:
+    image: hsh0322/las-pytorch
+    volumes:
+      - ./:/opt/project
+    ports:
+      - "6006:6006"
+    command: tensorboard --logdir=log/las_timit --port=6006 --host=0.0.0.0
+
+  train1:
+    image: hsh0322/las-pytorch
+    volumes:
+      - ./:/opt/project
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=1
+    command:
+      python3 train_timit.py config/timit/mel_spikegram_168_2/config1.yaml
+
+  tensorboard1:
+    image: hsh0322/las-pytorch
+    volumes:
+      - ./:/opt/project
+    ports:
+      - "6005:6005"
+    command: tensorboard --logdir=log/las_timit1 --port=6005 --host=0.0.0.0
+
+  train2:
+    image: hsh0322/las-pytorch
+    volumes:
+      - ./:/opt/project
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=0
+    command:
+      python3 train_timit.py config/timit/mel_spikegram_168_2/config2.yaml
+
+  tensorboard2:
+    image: hsh0322/las-pytorch
+    volumes:
+      - ./:/opt/project
+    ports:
+      - "6004:6004"
+    command: tensorboard --logdir=log/las_timit2 --port=6004 --host=0.0.0.0
+
+  train3:
+    image: hsh0322/las-pytorch
+    volumes:
+      - ./:/opt/project
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=1
+    command:
+      python3 train_timit.py config/timit/mel_spikegram_168_2/config3.yaml
+
+  tensorboard3:
+    image: hsh0322/las-pytorch
+    volumes:
+      - ./:/opt/project
+    ports:
+      - "6003:6003"
+    command: tensorboard --logdir=log/las_timit3 --port=6003 --host=0.0.0.0
