@@ -1,4 +1,4 @@
-# Speech recognition using MFCC and Spikegram
+# Speech recognition using Melspectrogram and Spikegram
 
 ## Description
 
