@@ -68,3 +68,4 @@ services:
     ports:
       - "6003:6003"
     command: tensorboard --logdir=log/las_timit3 --port=6003 --host=0.0.0.0
+    
