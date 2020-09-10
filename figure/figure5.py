@@ -31,7 +31,7 @@ plt.subplot(2, 1, 1)
 
 plt.scatter(x=x[:, 2], y=x[:, 0], s=x[:, 1]**scale, c='black')
 
-plt.title("32 spectral features")
+plt.title("K spectral features")
 
 start = point; end = start + 400
 
@@ -43,7 +43,7 @@ plt.yticks([freq_value[i] for i in [10, 20, 30]], [10, 20, 30])
 plt.ylim(0, 8000)
 plt.ylabel("Band")
 
-for freq in freq_value:
+for freq in freq_value[::4]:
     plt.axhline(freq, color='black', linestyle='-.', linewidth=0.5)
 
 ###################################################################
@@ -52,7 +52,7 @@ plt.subplot(2, 1, 2)
 
 plt.scatter(x=x[:, 2], y=x[:, 0], s=x[:, 1]**scale, c='black')
 
-plt.title("K temporal features")
+plt.title("L temporal features")
 
 start = point; end = start + 400
 

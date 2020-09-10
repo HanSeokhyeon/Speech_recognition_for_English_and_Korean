@@ -7,6 +7,9 @@ import torch.nn as nn
 from tensorboardX import SummaryWriter
 import argparse
 from logger import *
+from pytorch_lightning import seed_everything
+
+seed_everything(42)
 
 # Load config file for experiment
 parser = argparse.ArgumentParser(description='Training script for LAS on TIMIT .')
