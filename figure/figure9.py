@@ -7,13 +7,13 @@ plt.rcParams['font.family'] = 'Times New Roman'
 plt.rcParams['font.size'] = 20
 fig = plt.figure(figsize=(8, 8), edgecolor='k')
 
-X_mel, _, _, _, _, _ = load_dataset(data_path='dataset/TIMIT/timit_mel_spectrogram_96.pkl')
+X_mel, _, _, _, _, _ = load_dataset(data_path='../dataset/TIMIT/timit_mel_spectrogram_96.pkl')
 mel = np.concatenate(X_mel, axis=0)[:, :32].T
 
 mel_x = np.repeat(range(0, 32), mel.shape[1])
 mel_y = np.reshape(mel, -1)
 
-X_train, _, _, _, _, _ = load_dataset(data_path='dataset/TIMIT/timit_mel_spikegram_240.pkl')
+X_train, _, _, _, _, _ = load_dataset(data_path='../dataset/TIMIT/timit_mel_spikegram_240.pkl')
 
 X = np.concatenate(X_train, axis=0)[:, :72]
 spike = X[:, 40:].T
