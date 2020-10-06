@@ -2,7 +2,7 @@
 
 ## Description
 
-This is a PyTorch implementation of [Listen, Attend and Spell](https://arxiv.org/abs/1508.01211v2) (LAS)  published in ICASSP 2016 (Student Paper Award) on [TIMIT](https://catalog.ldc.upenn.edu/ldc93s1) and [LibriSpeech](http://www.openslr.org/12/).
+This is a PyTorch implementation of [Listen, Attend and Spell](https://arxiv.org/abs/1508.01211v2) (LAS)  published in ICASSP 2016 (Student Paper Award) on [TIMIT](https://catalog.ldc.upenn.edu/ldc93s1).
 Feel free to use/modify them, any bug report or improvement suggestion will be appreciated. If you have any questions, please contact b03902034[AT]ntu.edu.tw
 
 ### TIMIT
