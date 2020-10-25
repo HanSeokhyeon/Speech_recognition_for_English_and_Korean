@@ -20,10 +20,6 @@ Result of the first sample in TIMIT testing set. Training log is availible in [h
 
 ![](log/attention.jpg)
 
-### LibriSpeech
-
-For LibriSpeech, the input feature is 40-dimensional log-mel filter bank computed every 10ms as specified in the original paper. The decoder is character based, outputting the distribution over 30 characters (including alphabet and punctuation).
-
 ##  Remarks
 
 ### Differences from the paper
