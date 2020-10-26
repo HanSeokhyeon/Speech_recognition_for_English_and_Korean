@@ -101,7 +101,7 @@ Be aware of some differences between this implementation and the originally prop
 
 - [pandas](https://pandas.pydata.org/)
 
-    For LibriSpeech dataset loading.
+    For TIMIT dataset loading.
 
 
 ## Setup
