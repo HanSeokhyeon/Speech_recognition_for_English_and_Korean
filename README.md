@@ -126,32 +126,6 @@ Be aware of some differences between this implementation and the originally prop
 
         For a customized experiment, please read and modify [`config/las_example_config.yaml`](config/las_timit_config.yaml). For more information and a simple demonstration, please refer to [`las_demo.ipynb`](las_demo.ipynb)
     
-- LibriSpeech
-
-
-     LibriSpeech includes over 1000 hours of speech, **process it with powerful computer ( enough cores , large RAM and high-end GPU) is strongly recommanded.**
-
-    -  Dataset Preprocess
-    
-        Download [LibriSpeech](http://www.openslr.org/12/) and extract it. Run the following command to process from wave to log-mel filter bank feature. 
-
-            cd util
-            ./librispeech_preprocess.sh <Absolute path to LibriSpeech folder> 
-
-        Note that the script is an example using clean-100 dataset only. For more arguments and instruction preprocessing LibriSpeech, please run
-
-            python3 util/librispeech_preprocess.py -h
-
-        After preprocessing step, `train.csv`/`test.csv`/`dev.csv`/`idx2chap.csv` should be in your LibriSpeech folder. Extracted feature is stored in npy format. Raw wave file will also be availible (Speech signal of LibriSpeech comes in FLAC format).
-
-    - LAS Model
-        Run the following commands to train LAS on LibriSpeech  ​  
-
-            mkdir -p checkpoint
-            mkdir -p log
-            python3 train_libri.py <config file path>
-
-        Training log (access it with tensorboard) will be stored at `log/` while model checkpoint at ` checkpoint/`. For a customized experiment, please read and modify [`config/las_libri_config.yaml`](config/las_libri_config.yaml). 
 
 ## ToDo
 
