@@ -127,11 +127,6 @@ Be aware of some differences between this implementation and the originally prop
         For a customized experiment, please read and modify [`config/las_example_config.yaml`](config/las_timit_config.yaml). For more information and a simple demonstration, please refer to [`las_demo.ipynb`](las_demo.ipynb)
     
 
-## ToDo
-
-- Supply experiment result of LibriSpeech dataset
-- WSJ Dataset
-
 
 ## References
 - TIMIT preprocessing : https://github.com/Faur/TIMIT
