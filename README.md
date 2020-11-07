@@ -17,7 +17,6 @@ The input feature is MFCC 39 (13+delta+accelerate), and the output phoneme class
 
 Result of the first sample in TIMIT testing set. Training log is availible in [here](log/), use ```tensorboard --logdir=las_example/``` to access.
 
-
 ![](log/attention.jpg)
 
 ##  Remarks
