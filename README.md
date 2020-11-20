@@ -57,7 +57,6 @@ Be aware of some differences between this implementation and the originally prop
 - GPU computing is recommended for training efficiency
 - Computing power and memory space (both RAM/GPU's RAM) is **extremely important** if you'ld like to train your own model, especially on LibriSpeech.
 
-
 ### Packages
 
 - [SoX](http://sox.sourceforge.net/)
