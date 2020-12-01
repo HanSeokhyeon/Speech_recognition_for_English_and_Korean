@@ -61,4 +61,7 @@ plt.xticks([0, 10, 20, 30], [0, 10, 20, 30])
 plt.ylabel("Value")
 plt.yticks([1000//6, 1000//6*3, 1000//6*5], [-2, 0, 2])
 
+fig1 = plt.gcf()
 plt.show()
+
+fig1.savefig("figures/figure5.png")

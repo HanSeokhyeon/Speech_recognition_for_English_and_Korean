@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib import rc
+rc('text', usetex=True)
 
 # Load config file for experiment
 parser = argparse.ArgumentParser(description='Training script for LAS on TIMIT .')
@@ -57,5 +59,7 @@ for h in [0, 8, 40, 80]:
 for v in [0, 40, 72, 80]:
     plt.axvline(v, color='black', alpha=0.3)
 
+fig1 = plt.gcf()
 plt.show()
 
+fig1.savefig("figures/figure6.png")

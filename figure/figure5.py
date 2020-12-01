@@ -69,4 +69,7 @@ for time in np.arange(start, end+1, 40):
 
 ###################################################################
 
+fig1 = plt.gcf()
 plt.show()
+
+fig1.savefig("figures/figure4.png")

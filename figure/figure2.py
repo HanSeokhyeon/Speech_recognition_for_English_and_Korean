@@ -41,5 +41,7 @@ plt.ylim(0)
 plt.yticks([])
 plt.ylabel("Gain")
 
+fig1 = plt.gcf()
 
 plt.show()
+fig1.savefig('figures/figure1.png')

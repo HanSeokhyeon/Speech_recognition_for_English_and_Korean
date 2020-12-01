@@ -73,4 +73,8 @@ plt.yticks([0, 2000, 4000, 6000, 8000])
 plt.ylim(0, 8000)
 plt.ylabel("Band")
 plt.ylabel("Frequency [Hz]")
+
+fig1 = plt.gcf()
+
 plt.show()
+fig1.savefig('figures/figure2.png')

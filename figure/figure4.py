@@ -41,7 +41,7 @@ x_phase[:, 0] = np.vectorize(lambda a: freq_value[int(a)])(x_phase[:, 0])
 plt.subplot(2, 1, 1)
 
 plt.scatter(x=x[:, 2], y=x[:, 0], s=x[:, 1]**scale, c='black')
-plt.plot(delay_now + [delay_now[-1]+delay_value[-1]], freq_value+[8000])
+plt.plot(delay_now + [delay_now[-1]+delay_value[-1]], freq_value+[8000], color='black')
 
 plt.title("Before phase alignment")
 
@@ -62,7 +62,7 @@ plt.grid(axis='x')
 plt.subplot(2, 1, 2)
 
 plt.scatter(x=x_phase[:, 2], y=x_phase[:, 0], s=x_phase[:, 1]**scale, c='black')
-plt.plot([delay_now[-1]+delay_value[-1]]*33, freq_value+[8000])
+plt.plot([delay_now[-1]+delay_value[-1]]*33, freq_value+[8000], color='black')
 
 plt.title("After phase alignment")
 
@@ -80,4 +80,7 @@ plt.grid(axis='x')
 
 ###################################################################
 
+fig1 = plt.gcf()
 plt.show()
+
+fig1.savefig("figures/figure3.png")
