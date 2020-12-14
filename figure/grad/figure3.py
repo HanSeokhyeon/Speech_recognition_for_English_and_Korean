@@ -14,7 +14,7 @@ fig = plt.figure(figsize=(10, 10))
 ###################################################################
 
 plt.subplot(3, 1, 1)
-signal = np.fromfile("SI648.WAV", dtype=np.int16)[512:]
+signal = np.fromfile("../SI648.WAV", dtype=np.int16)[512:]
 spectrogram, frequency, time, _ = plt.specgram(x=signal, Fs=16000, NFFT=400, noverlap=160, cmap='gray')
 
 plt.title("Spectrogram")
@@ -49,10 +49,10 @@ delay_value = [371, 326, 297, 275, 307, 279, 255, 209, 174, 165, 140, 120,  92, 
                68,  60,  47, 41, 41, 36, 32, 25, 28, 20, 20, 16, 16, 14, 14,
                10, 9]
 
-x = np.fromfile("SI648_spike.raw", dtype=np.float64)
+x = np.fromfile("../SI648_spike.raw", dtype=np.float64)
 x = x.reshape(-1, 4)
 
-num = np.fromfile("SI648_num.raw", dtype=np.int32)
+num = np.fromfile("../SI648_num.raw", dtype=np.int32)
 num_acc = [sum(num[:i+1]) for i in range(len(num))]
 for i, v in enumerate(num_acc[:-1]):
     x[num_acc[i]:num_acc[i+1], 2] += 12288*(i+1)

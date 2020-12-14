@@ -11,7 +11,7 @@ plt.rcParams['font.size'] = 20
 fig = plt.figure(figsize=(10, 10))
 ax = fig.subplots()
 ax2 = ax.twinx()
-gammatone_filter = np.fromfile("fft.raw", dtype=np.float64)
+gammatone_filter = np.fromfile("../fft.raw", dtype=np.float64)
 gammatone_filter = gammatone_filter.reshape(32, 2048)
 
 freq_value = [20, 48, 80, 116, 156, 201, 250, 306, 367, 436, 513, 599, 695, 801, 921, 1053, 1202, 1367, 1551, 1757,

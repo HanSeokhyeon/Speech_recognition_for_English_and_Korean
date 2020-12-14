@@ -15,10 +15,10 @@ freq_value = [20, 48, 80, 116, 156, 201, 250, 306, 367, 436, 513, 599, 695, 801,
 point = 10000
 scale = 0.65
 
-x = np.fromfile("SI648_spike.raw", dtype=np.float64)
+x = np.fromfile("../SI648_spike.raw", dtype=np.float64)
 x = x.reshape(-1, 4)
 
-num = np.fromfile("SI648_num.raw", dtype=np.int32)
+num = np.fromfile("../SI648_num.raw", dtype=np.int32)
 num_acc = [sum(num[:i+1]) for i in range(len(num))]
 for i, v in enumerate(num_acc[:-1]):
     x[num_acc[i]:num_acc[i+1], 2] += 12288*(i+1)

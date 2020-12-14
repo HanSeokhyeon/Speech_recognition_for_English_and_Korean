@@ -1,75 +1,72 @@
 """
-그림 3. 음성 신호의 스펙트로그램, 멜-스펙트로그램과 스파이크그램의 예
+그림 5. 32-밴드 멜-스펙트로그램(위)과 32-밴드 스파이크그램(아래) 특성의 확률 분포
 """
 
+from util.timit_dataset import load_dataset
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 plt.rcParams['font.family'] = 'Times New Roman'
 plt.rcParams['font.size'] = 20
-fig = plt.figure(figsize=(6, 10))
+fig = plt.figure(figsize=(8, 8), edgecolor='k')
 
-freq_value = [20, 48, 80, 116, 156, 201, 250, 306, 367, 436, 513, 599, 695, 801, 921, 1053, 1202, 1367, 1551, 1757,
-              1987, 2243, 2528, 2847, 3202, 3599, 4041, 4534, 5085, 5698, 6383, 7147]
+# 32 밴드 멜 스펙트로그램
+X_mel, _, _, _, _, _ = load_dataset(data_path='../dataset/TIMIT/timit_mel_spectrogram_96.pkl')
+mel = np.concatenate(X_mel, axis=0)[:, :32].T
 
-point = 10000
-scale = 0.65
+mel_x = np.repeat(range(0, 32), mel.shape[1])
+mel_y = np.reshape(mel, -1)
 
-x = np.fromfile("SI648_spike.raw", dtype=np.float64)
-x = x.reshape(-1, 4)
+X_train, _, _, _, _, _ = load_dataset(data_path='../dataset/TIMIT/timit_mel_spikegram_240.pkl')
 
-num = np.fromfile("SI648_num.raw", dtype=np.int32)
-num_acc = [sum(num[:i+1]) for i in range(len(num))]
-for i, v in enumerate(num_acc[:-1]):
-    x[num_acc[i]:num_acc[i+1], 2] += 12288*(i+1)
+X = np.concatenate(X_train, axis=0)[:, :72]
+spike = X[:, 40:].T
 
-x[:, 0] = np.vectorize(lambda a: freq_value[int(a)])(x[:, 0])
+spike_x = np.repeat(range(0, 32), spike.shape[1])
+spike_y = np.reshape(spike, -1)
 
-###################################################################
+hist_mel, _, _, _ = plt.hist2d(mel_x, mel_y, bins=(32, 1000), range=[[0, 32], [-3, 3]], cmap='binary', vmax=4000)
+hist_mel[np.where(hist_mel > 4000)] = 4000
+hist_mel = (hist_mel / 4000).T
+
+hist_spike, _, _, _ = plt.hist2d(spike_x, spike_y, bins=(32, 1000), range=[[0, 32], [-3, 3]], cmap='binary', vmax=4000)
+hist_spike[np.where(hist_spike > 4000)] = 4000
+hist_spike = (hist_spike / 4000).T
+
+plt.clf()
 
 plt.subplot(2, 1, 1)
 
-plt.scatter(x=x[:, 2], y=x[:, 0], s=x[:, 1]**scale, c='black')
+res = sns.heatmap(hist_mel, cmap='binary')
+res.invert_yaxis()
 
-plt.title("K spectral features")
+for _, spine in res.spines.items():
+    spine.set_visible(True)
 
-start = point; end = start + 400
 
-plt.xticks(np.arange(start, end+1, 80), np.arange(0, 26, 5))
-plt.xlim(start, end)
-plt.xlabel("Time [ms]")
-
-plt.yticks([freq_value[i] for i in [10, 20, 30]], [10, 20, 30])
-plt.ylim(0, 8000)
-plt.ylabel("Band")
-
-for freq in freq_value[::4]:
-    plt.axhline(freq, color='black', linestyle='-.', linewidth=0.5)
-
-###################################################################
+plt.title("Mel-spectrogram")
+plt.xlabel("Band")
+plt.xticks([0, 10, 20, 30], [0, 10, 20, 30])
+plt.ylabel("Value")
+plt.yticks([1000//6, 1000//6*3, 1000//6*5], [-2, 0, 2])
 
 plt.subplot(2, 1, 2)
 
-plt.scatter(x=x[:, 2], y=x[:, 0], s=x[:, 1]**scale, c='black')
+res = sns.heatmap(hist_spike, cmap='binary')
+res.invert_yaxis()
 
-plt.title("L temporal features")
+for _, spine in res.spines.items():
+    spine.set_visible(True)
 
-start = point; end = start + 400
 
-plt.xticks(np.arange(start, end+1, 80), np.arange(0, 26, 5))
-plt.xlim(start, end)
-plt.xlabel("Time [ms]")
-
-plt.yticks([freq_value[i] for i in [10, 20, 30]], [10, 20, 30])
-plt.ylim(0, 8000)
-plt.ylabel("Band")
-
-for time in np.arange(start, end+1, 40):
-    plt.axvline(time, color='black', linestyle='-.', linewidth=0.5)
-
-###################################################################
+plt.title("Spikegram")
+plt.xlabel("Band")
+plt.xticks([0, 10, 20, 30], [0, 10, 20, 30])
+plt.ylabel("Value")
+plt.yticks([1000//6, 1000//6*3, 1000//6*5], [-2, 0, 2])
 
 fig1 = plt.gcf()
 plt.show()
 
-fig1.savefig("figures/figure4.png")
+fig1.savefig("figures/figure5.png")

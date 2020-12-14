@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 
-with open("pfi_mel40_spikegram40_5.pkl", "rb") as f:
+with open("../pfi_mel40_mfcc40_5.pkl", "rb") as f:
     data = pickle.load(f)
 
 max_cer, cers = data[0], data[1:]
@@ -32,9 +32,8 @@ fig = plt.figure(figsize=(8, 6.4))
 sns.barplot(x='feature', y='pfi', data=df, ci=None, color='gray')
 
 # plt.xlim(0, 79)
-plt.xticks([20, 56, 76], ["$X_{0...39}$", "$G_{0...31}$", "$T_{0...7}$"])
+plt.xticks([20, 60], ["$X_{0...39}$", "$MFCC_{0...39}$"])
 plt.axvline(39.5, color='black', alpha=0.7)
-plt.axvline(71.5, color='black', alpha=0.7)
 
 
 plt.show()

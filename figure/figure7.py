@@ -1,65 +1,66 @@
-import yaml
-from util.timit_dataset import load_dataset
-import argparse
-import numpy as np
-import pandas as pd
-import seaborn as sns
+"""
+그림 7. 멜-스펙트로그램, MFCC 기반 다중 특성(위)과 멜-스펙트로그램, 스파이크그램 기반 다중 특성(아래)의 PFI
+"""
+
+import pickle
 import matplotlib.pyplot as plt
-from matplotlib import rc
-rc('text', usetex=True)
-
-# Load config file for experiment
-parser = argparse.ArgumentParser(description='Training script for LAS on TIMIT .')
-parser.add_argument('config_path', metavar='config_path', type=str, help='Path to config file for training.')
-paras = parser.parse_args()
-config_path = paras.config_path
-conf = yaml.load(open(config_path, 'r'))
-
-# Load preprocessed TIMIT Dataset ( using testing set directly here, replace them with validation set your self)
-# X : Padding to shape [num of sample, max_timestep, feature_dim]
-# Y : Squeeze repeated label and apply one-hot encoding (preserve 0 for <sos> and 1 for <eos>)
-X_train, y_train, X_valid, y_valid, X_test, y_test = load_dataset(**conf['meta_variable'])
-
-X = np.concatenate(X_test, axis=0)[:, :80]
-dfx = pd.DataFrame(X, columns=range(80))
-corr = dfx.corr()
-corr = corr.iloc[::-1]
-# corr[79][0] = -1
-
-ticks_x = [0, 10, 20, 30,
-         40, 48, 56, 64,
-         72, 80]
-ticks_y = [0, 8,
-           16, 24, 32, 40,
-           50, 60, 70, 80]
-tickslabel = ["$X_0$", "$X_{10}$", "$X_{20}$", "$X_{30}$",
-              "$G_0$", "$G_8$", "$G_{16}$", "$G_{24}$",
-              "$T_0$", "$T_8$"]
-
-ticks_x = [20, 56, 76]
-ticks_y = [4, 24, 60]
-tickslabel = ["$X_{0...39}$", "$G_{0...31}$", "$T_{0...7}$"]
-
-mask = np.zeros_like(corr)
-for i in range(80):
-    mask[i, :-(i+1)] = True
+import seaborn as sns
+import pandas as pd
 
 plt.rcParams['font.family'] = 'Times New Roman'
 plt.rcParams['font.size'] = 20
-fig = plt.figure(figsize=(8, 6.4))
+fig = plt.figure(figsize=(8, 8))
 
-ax = sns.heatmap(corr, annot=False, mask=mask, cmap='gray', xticklabels=tickslabel, yticklabels=list(reversed(tickslabel)))
-ax.set_xticks(ticks_x)
-ax.set_yticks(ticks_y)
+with open("pfi_mel40_mfcc16_5.pkl", "rb") as f:
+    data = pickle.load(f)
 
-plt.xticks(rotation=0)
+max_cer, cers = data[0][0], data[1:]
+if type(max_cer) == tuple:
+    max_cer = max_cer[0]
 
-for h in [0, 8, 40, 80]:
-    plt.axhline(h, color='black', alpha=0.3)
-for v in [0, 40, 72, 80]:
-    plt.axvline(v, color='black', alpha=0.3)
+df = pd.DataFrame(columns=['Features', 'PFI'])
+for i, cer in enumerate(cers):
+    pfi = []
+    for j, c in enumerate(cer):
+        now_pfi = (c-max_cer)/max_cer*100
+        pfi.append(["f{}".format(i), now_pfi])
+    pfi = pd.DataFrame(pfi, columns=['Features', 'PFI'])
+    df = df.append(pfi, ignore_index=True)
+
+plt.subplot(2, 1, 1)
+
+sns.barplot(x='Features', y='PFI', data=df, ci=None, color='gray')
+
+plt.xticks([20-0.5, 48-0.5], ["$Mel_{0...39}$", "$MFCC_{0...15}$"])
+plt.axvline(39.5, color='black', alpha=0.7)
+
+plt.ylim(-1.5, 6.5)
+
+with open("pfi_mel40_spikegram_8_8_5.pkl", "rb") as f:
+    data = pickle.load(f)
+
+max_cer, cers = data[0][0], data[1:]
+
+df = pd.DataFrame(columns=['Features', 'PFI'])
+for i, cer in enumerate(cers):
+    pfi = []
+    for j, c in enumerate(cer):
+        now_pfi = (c-max_cer)/max_cer*100
+        pfi.append(["f{}".format(i), now_pfi])
+    pfi = pd.DataFrame(pfi, columns=['Features', 'PFI'])
+    df = df.append(pfi, ignore_index=True)
+
+plt.subplot(2, 1, 2)
+
+sns.barplot(x='Features', y='PFI', data=df, ci=None, color='gray')
+
+plt.xticks([20-0.5, 44-0.5, 52-0.5], ["$Mel_{0...39}$", "$G_{0...7}$", "$T_{0...7}$"])
+plt.axvline(39.5, color='black', alpha=0.7)
+plt.axvline(47.5, color='black', alpha=0.7)
+
+plt.ylim(-1.5, 6.5)
 
 fig1 = plt.gcf()
 plt.show()
 
-fig1.savefig("figures/figure6.png")
+fig1.savefig("figures/figure7.png")

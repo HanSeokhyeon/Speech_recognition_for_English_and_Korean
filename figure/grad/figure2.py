@@ -26,7 +26,7 @@ plt.ylabel("Gain")
 
 
 plt.subplot(2, 1, 2)
-gammatone_filter = np.fromfile("fft.raw", dtype=np.float64)
+gammatone_filter = np.fromfile("../fft.raw", dtype=np.float64)
 gammatone_filter = gammatone_filter.reshape(32, 2048)
 gammatone_filter_freq = np.abs(np.fft.fft(gammatone_filter, axis=1))[:1024].T
 plt.plot(gammatone_filter_freq, color='gray')
