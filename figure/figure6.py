@@ -19,9 +19,9 @@ plt.rcParams['xtick.top'] = plt.rcParams['xtick.labeltop'] = True
 # Y : Squeeze repeated label and apply one-hot encoding (preserve 0 for <sos> and 1 for <eos>)
 X_train, _, _, _, _, _ = load_dataset(data_path='../dataset/TIMIT/timit_mel_mfcc_168.pkl')
 
-X = np.concatenate(X_train, axis=0)[:, :56]
-dfx = pd.DataFrame(X, columns=range(56))
-corr = dfx.corr().abs()
+X = np.concatenate(X_train, axis=0)[:, :56]  # mel40, g8 t8
+dfx = pd.DataFrame(X, columns=range(56))  # 판다스 데이터프레임
+corr = dfx.corr().abs()  # correlation
 # corr = corr.iloc[::-1]
 
 ticks = [20, 48]
